@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import {
   Container, Box, Paper, List, ListItem, ListItemText, TextField, Button, Typography,
   useMediaQuery, createTheme, ThemeProvider, CircularProgress, Tabs, Tab, ListItemIcon,
-  Table, TableBody, TableContainer, TableHead, TableRow, TableCell, TablePagination, Chip, Grid
+  Table, TableBody, TableContainer, TableHead, TableRow, TableCell, TablePagination, Chip, Grid, IconButton
 } from '@mui/material';
 import { blue } from '@mui/material/colors';
 import { format } from 'date-fns';
@@ -14,6 +14,8 @@ import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const theme = createTheme({
   palette: {
@@ -43,6 +45,9 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   const [condenserChemicals, setCondenserChemicals] = useState([]);
   const [coolingTowerChemicals, setCoolingTowerChemicals] = useState([]);
   const [additionalData, setAdditionalData] = useState([]);
+  const [notes, setNotes] = useState([]);
+  const [noteInput, setNoteInput] = useState('');
+  const [rows, setRows] = useState([{ Name: '', Signature: '' }]);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(true);
@@ -118,6 +123,12 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
     doc.save('visitor_log_report.pdf');
   };
 
+  const fetchNotes = async () => {
+    const notesSnapshot = await getDocs(collection(db, 'notes'));
+    const notesData = notesSnapshot.docs.map(doc => doc.data());
+    setNotes(notesData);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -171,11 +182,13 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       }));
       setAdditionalData(additionalDataContent);
 
+      await fetchNotes();
+
       setLoading(false);
     };
     fetchData();
   }, []);
-  const [openSignatureModal, setOpenSignatureModal] = useState(false);
+
   const renderTableData = (data, columns) => (
     <TableContainer component={Paper}>
       <Table>
@@ -262,7 +275,94 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       </Box>
     </Box>
   );
+  const renderListData = (data) => (
+    <List dense>
+      {data.flatMap(item => item.notes).map((note, index) => ( 
+        <ListItem key={index}>
+          <ListItemIcon>
+            <Typography variant="body1" sx={{ color: '#000' }}>
+              {index + 1}.
+            </Typography>
+          </ListItemIcon>
+          <ListItemText primary={note} sx={{ color: '#000' }} />
+        </ListItem>
+      ))}
+    </List>
+  );
   
+  const renderNotes = () => (
+    <Box sx={{ mt: 2 }}>
+      <Typography variant="h6">Notes</Typography>
+      <List>
+        {notes.map((note, index) => (
+          <ListItem key={index} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <ListItemText primary={note} />
+          </ListItem>
+        ))}
+        <ListItem>
+          <TextField
+            fullWidth
+            variant="outlined"
+            value={noteInput}
+            onChange={(e) => setNoteInput(e.target.value)}
+            placeholder="Add a note"
+          />
+          <IconButton color="primary" onClick={() => setNotes([...notes, noteInput])}>
+            <AddIcon />
+          </IconButton>
+        </ListItem>
+      </List>
+      <Box sx={{ mt: 4 }}>
+        <TableContainer component={Paper} sx={{ overflowX: 'auto', mb: 3 }}>
+          <Table sx={{ minWidth: 650 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '14px', padding: '8px' }}>Name</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '14px', padding: '8px' }}>Signature</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell sx={{ padding: '8px' }}>
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    placeholder="Name"
+                    value={rows[0]?.['Name'] || ''}
+                    onChange={(e) => setRows([{ ...rows[0], Name: e.target.value }])}
+                    sx={{ '& .MuiInputBase-root': { height: '56px' } }}
+                  />
+                </TableCell>
+                <TableCell sx={{ padding: '8px' }}>
+                  <div
+                    style={{
+                      cursor: 'pointer',
+                      border: '1px solid #000',
+                      height: '56px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginTop: -4,
+                      backgroundColor: rows[0]?.['Signature'] ? 'transparent' : '#f0f0f0'
+                    }}
+                  >
+                    {rows[0]?.['Signature'] ? (
+                      <img src={rows[0]?.['Signature']} alt="Signature" style={{ width: '100px', height: '50px' }} />
+                    ) : (
+                      <Typography variant="body2" sx={{ color: '#888' }}>
+                        Click to Sign
+                      </Typography>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+    </Box>
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <Container component={Paper} sx={{ p: 3, mt: 3, minHeight: '100vh', backgroundColor: theme.palette.background.paper }}>
@@ -325,14 +425,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
             <Typography variant="h5" component="h2" gutterBottom textAlign="center" sx={{ color: '#000' }}>
               Admin Panel
             </Typography>
-            <Tabs
-              value={tabIndex}
-              onChange={handleTabChange}
-              centered
-              variant={isMobile ? 'scrollable' : 'standard'}
-              scrollButtons={isMobile ? 'auto' : 'off'}
-              allowScrollButtonsMobile
-            >
+            <Tabs value={tabIndex} onChange={handleTabChange} centered>
               <Tab label="Shift Transfer Log" />
               <Tab label="Plant Visitor Log" />
               <Tab label="Water Treatment Log" />
@@ -343,17 +436,10 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
               </Box>
             ) : (
               <>
-                {tabIndex === 0 && (
+               {tabIndex === 0 && (
                   <Box sx={{ mt: 3 }}>
-                    <Tabs
-                      value={detailsSubTabIndex}
-                      onChange={handleDetailsSubTabChange}
-                      centered
-                      variant={isMobile ? 'scrollable' : 'standard'}
-                      scrollButtons={isMobile ? 'auto' : 'off'}
-                      allowScrollButtonsMobile
-                    >
-                      <Tab label="AD-002" />
+                    <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
+                       <Tab label="AD-002" />
                       <Tab label="AD-004" />
                     </Tabs>
                     <Box sx={{ mt: 2 }}>
@@ -372,14 +458,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                 )}
                 {tabIndex === 1 && (
                   <Box sx={{ mt: 3 }}>
-                    <Tabs
-                      value={detailsSubTabIndex}
-                      onChange={handleDetailsSubTabChange}
-                      centered
-                      variant={isMobile ? 'scrollable' : 'standard'}
-                      scrollButtons={isMobile ? 'auto' : 'off'}
-                      allowScrollButtonsMobile
-                    >
+                    <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
                       <Tab label="AD-002" />
                       <Tab label="AD-004" />
                     </Tabs>
@@ -409,7 +488,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                                 renderInput={(params) => <TextField {...params} />}
                               />
                             </LocalizationProvider>
-                            <Button variant="contained" color="primary" onClick={handleSearchChange}>
+                            <Button variant="contained" color="primary" onClick={handleDownloadReport} sx={{ ml: 2 }}>
                               Search
                             </Button>
                           </Box>
@@ -479,16 +558,9 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                 )}
                 {tabIndex === 2 && (
                   <Box sx={{ mt: 3 }}>
-                    <Tabs
-                      value={waterTreatmentSubTabIndex}
-                      onChange={handleWaterTreatmentSubTabChange}
-                      centered
-                      variant={isMobile ? 'scrollable' : 'standard'}
-                      scrollButtons={isMobile ? 'auto' : 'off'}
-                      allowScrollButtonsMobile
-                    >
-                      <Tab label="AD-002" />
-                      <Tab label="AD-004" />
+                    <Tabs value={waterTreatmentSubTabIndex} onChange={handleWaterTreatmentSubTabChange} centered>
+                    <Tab label="AD-002" />
+                    <Tab label="AD-004" />
                     </Tabs>
                     <Box sx={{ mt: 2 }}>
                       {waterTreatmentSubTabIndex === 0 && (
@@ -497,21 +569,22 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                               <WaterTreatmentHeader />
                                 </Box>
             
-                              
                           <Typography variant="h6" gutterBottom>Make-Up Condenser Water</Typography>
-                          {renderTableData(condenserWater, ['Day', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action', 'Name', 'Signature'])}
+                          {renderTableData(condenserWater, ['Day', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action'])}
 
                           <Typography variant="h6" gutterBottom>Chilled Water</Typography>
-                          {renderTableData(chilledWater, ['Day', 'Conductivity', 'Action', 'Name', 'Signature'])}
+                          {renderTableData(chilledWater, ['Day', 'Conductivity', 'Action'])}
 
                           <Typography variant="h6" gutterBottom>Condenser Chemicals</Typography>
-                          {renderTableData(condenserChemicals, ['Product Name', 'Opening Stock (Kg)', 'Closing Stock (Kg)', 'Consumption (Kg)', 'Name', 'Signature'])}
+                          {renderTableData(condenserChemicals, ['Product Name', 'Opening Stock (Kg)', 'Closing Stock (Kg)', 'Consumption (Kg)'])}
 
                           <Typography variant="h6" gutterBottom>Cooling Tower Chemicals</Typography>
-                          {renderTableData(coolingTowerChemicals, ['Product Name', 'Available empty Jerry Cans in plants (06-11-2022)', 'Name', 'Signature'])}
+                          {renderTableData(coolingTowerChemicals, ['Product Name', 'Available empty Jerry Cans in plants (06-11-2022)'])}
+                          <Typography variant="h6" gutterBottom>Notes</Typography>
+                          {renderListData(notes)}
 
-                          <Typography variant="h6" gutterBottom>Additional Data</Typography>
-                          {renderTableData(additionalData, ['label', 'value'])}
+                        
+                       
                         </Box>
                       )}
                       {waterTreatmentSubTabIndex === 1 && (
