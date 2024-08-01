@@ -325,7 +325,14 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
             <Typography variant="h5" component="h2" gutterBottom textAlign="center" sx={{ color: '#000' }}>
               Admin Panel
             </Typography>
-            <Tabs value={tabIndex} onChange={handleTabChange} centered>
+            <Tabs
+              value={tabIndex}
+              onChange={handleTabChange}
+              centered
+              variant={isMobile ? 'scrollable' : 'standard'}
+              scrollButtons={isMobile ? 'auto' : 'off'}
+              allowScrollButtonsMobile
+            >
               <Tab label="Shift Transfer Log" />
               <Tab label="Plant Visitor Log" />
               <Tab label="Water Treatment Log" />
@@ -336,10 +343,17 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
               </Box>
             ) : (
               <>
-               {tabIndex === 0 && (
+                {tabIndex === 0 && (
                   <Box sx={{ mt: 3 }}>
-                    <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
-                       <Tab label="AD-002" />
+                    <Tabs
+                      value={detailsSubTabIndex}
+                      onChange={handleDetailsSubTabChange}
+                      centered
+                      variant={isMobile ? 'scrollable' : 'standard'}
+                      scrollButtons={isMobile ? 'auto' : 'off'}
+                      allowScrollButtonsMobile
+                    >
+                      <Tab label="AD-002" />
                       <Tab label="AD-004" />
                     </Tabs>
                     <Box sx={{ mt: 2 }}>
@@ -358,7 +372,14 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                 )}
                 {tabIndex === 1 && (
                   <Box sx={{ mt: 3 }}>
-                    <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
+                    <Tabs
+                      value={detailsSubTabIndex}
+                      onChange={handleDetailsSubTabChange}
+                      centered
+                      variant={isMobile ? 'scrollable' : 'standard'}
+                      scrollButtons={isMobile ? 'auto' : 'off'}
+                      allowScrollButtonsMobile
+                    >
                       <Tab label="AD-002" />
                       <Tab label="AD-004" />
                     </Tabs>
@@ -388,6 +409,9 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                                 renderInput={(params) => <TextField {...params} />}
                               />
                             </LocalizationProvider>
+                            <Button variant="contained" color="primary" onClick={handleSearchChange}>
+                              Search
+                            </Button>
                           </Box>
                           <Button variant="contained" color="primary" onClick={handleDownloadReport} sx={{ mb: 2 }}>
                             Download Report
@@ -455,9 +479,16 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                 )}
                 {tabIndex === 2 && (
                   <Box sx={{ mt: 3 }}>
-                    <Tabs value={waterTreatmentSubTabIndex} onChange={handleWaterTreatmentSubTabChange} centered>
-                    <Tab label="AD-002" />
-                    <Tab label="AD-004" />
+                    <Tabs
+                      value={waterTreatmentSubTabIndex}
+                      onChange={handleWaterTreatmentSubTabChange}
+                      centered
+                      variant={isMobile ? 'scrollable' : 'standard'}
+                      scrollButtons={isMobile ? 'auto' : 'off'}
+                      allowScrollButtonsMobile
+                    >
+                      <Tab label="AD-002" />
+                      <Tab label="AD-004" />
                     </Tabs>
                     <Box sx={{ mt: 2 }}>
                       {waterTreatmentSubTabIndex === 0 && (
