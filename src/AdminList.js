@@ -571,9 +571,9 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
             
                           <Typography variant="h6" gutterBottom>Make-Up Condenser Water</Typography>
                           {renderTableData(condenserWater, ['Day', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action'])}
-
+{JSON.stringify(chilledWater)}
                           <Typography variant="h6" gutterBottom>Chilled Water</Typography>
-                          {renderTableData(chilledWater, ['Day', 'Conductivity', 'Action'])}
+                          {renderTableData(chilledWater, ['Day', 'Conductivity', 'Action','Name','Signature'])}
 
                           <Typography variant="h6" gutterBottom>Condenser Chemicals</Typography>
                           {renderTableData(condenserChemicals, ['Product Name', 'Opening Stock (Kg)', 'Closing Stock (Kg)', 'Consumption (Kg)'])}
