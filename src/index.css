@@ -1,0 +1,36 @@
+body {
+  margin: 0;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* src/index.css */
+
+
+
+.link-like {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.signature-container {
+  max-width: 100%;
+  overflow: hidden; /* or overflow: auto; */
+}
+
+.signature {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+.link-like {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+}
+body, html {
+  font-family: 'Poppins', sans-serif !important;
+}
