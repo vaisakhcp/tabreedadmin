@@ -425,7 +425,9 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
             <Typography variant="h5" component="h2" gutterBottom textAlign="center" sx={{ color: '#000' }}>
               Admin Panel
             </Typography>
-            <Tabs value={tabIndex} onChange={handleTabChange} centered>
+            <Tabs value={tabIndex} onChange={handleTabChange} centered   variant="scrollable"
+  scrollButtons="auto"
+  allowScrollButtonsMobile>
               <Tab label="Shift Transfer Log" />
               <Tab label="Plant Visitor Log" />
               <Tab label="Water Treatment Log" />
