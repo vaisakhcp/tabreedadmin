@@ -124,13 +124,18 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   };
 
   const fetchNotes = async () => {
-    const notesSnapshot = await getDocs(collection(db, 'notes'));
-    const notesData = notesSnapshot.docs.map(doc => doc.data());
-    setNotes(notesData);
+    try {
+      const notesSnapshot = await getDocs(collection(db, 'notes'));
+      const notesData = notesSnapshot.docs.map(doc => doc.data());
+      setNotes(notesData);
+    } catch (error) {
+      console.error("Error fetching notes: ", error);
+    }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchData = async () => {
+
+    try {
       setLoading(true);
 
       const userCheckInsSnapshot = await getDocs(collection(db, 'userCheckIns'));
@@ -138,13 +143,16 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
         id: doc.id,
         ...doc.data()
       }));
+      console.log('Fetched userCheckIns: ', userCheckInsData);
       setUserCheckIns(userCheckInsData);
 
-      const submissionsSnapshot = await getDocs(collection(db, 'submissions'));
+      const submissionsSnapshot = await getDocs(collection(db, 'shiftHandOvers'));
+
       const submissionsData = submissionsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+      console.log('Fetched submissions: ', submissionsData);
       setSubmissions(submissionsData);
 
       const condenserWaterSnapshot = await getDocs(collection(db, 'condenserWater'));
@@ -152,6 +160,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
         id: doc.id,
         ...doc.data()
       }));
+      console.log('Fetched condenserWater: ', condenserWaterData);
       setCondenserWater(condenserWaterData);
 
       const chilledWaterSnapshot = await getDocs(collection(db, 'chilledWater'));
@@ -159,6 +168,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
         id: doc.id,
         ...doc.data()
       }));
+      console.log('Fetched chilledWater: ', chilledWaterData);
       setChilledWater(chilledWaterData);
 
       const condenserChemicalsSnapshot = await getDocs(collection(db, 'condenserChemicals'));
@@ -166,6 +176,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
         id: doc.id,
         ...doc.data()
       }));
+      console.log('Fetched condenserChemicals: ', condenserChemicalsData);
       setCondenserChemicals(condenserChemicalsData);
 
       const coolingTowerChemicalsSnapshot = await getDocs(collection(db, 'coolingTowerChemicals'));
@@ -173,6 +184,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
         id: doc.id,
         ...doc.data()
       }));
+      console.log('Fetched coolingTowerChemicals: ', coolingTowerChemicalsData);
       setCoolingTowerChemicals(coolingTowerChemicalsData);
 
       const additionalDataSnapshot = await getDocs(collection(db, 'additionalTable'));
@@ -180,12 +192,18 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
         id: doc.id,
         ...doc.data()
       }));
+      console.log('Fetched additionalData: ', additionalDataContent);
       setAdditionalData(additionalDataContent);
 
       await fetchNotes();
-
       setLoading(false);
-    };
+    } catch (error) {
+      console.error("Error fetching data: ", error);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -275,7 +293,9 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       </Box>
     </Box>
   );
+
   const renderListData = (data) => (
+    <div>
     <List dense>
       {data.flatMap(item => item.notes).map((note, index) => ( 
         <ListItem key={index}>
@@ -287,7 +307,8 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
           <ListItemText primary={note} sx={{ color: '#000' }} />
         </ListItem>
       ))}
-    </List>
+  </List>
+  </div>
   );
   
   const renderNotes = () => (
@@ -573,7 +594,6 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
             
                           <Typography variant="h6" gutterBottom>Make-Up Condenser Water</Typography>
                           {renderTableData(condenserWater, ['Day', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action'])}
-{JSON.stringify(chilledWater)}
                           <Typography variant="h6" gutterBottom>Chilled Water</Typography>
                           {renderTableData(chilledWater, ['Day', 'Conductivity', 'Action','Name','Signature'])}
 

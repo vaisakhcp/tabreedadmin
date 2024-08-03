@@ -66,12 +66,14 @@ const AdminDetail = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('ger')
     const fetchData = async () => {
       const docRef = doc(db, 'shiftHandOvers', id);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
         setSubmission(docSnap.data());
+        console.log('test',docSnap.data())
       } else {
         console.log("No such document!");
       }
