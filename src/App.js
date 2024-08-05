@@ -217,11 +217,24 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
-          <TableRow>
-            {columns.map((column, index) => (
-              <TableCell key={index}>{column}</TableCell>
-            ))}
-          </TableRow>
+          {data === 'Data' ?
+            <TableRow>
+              <TableCell>Sunday  </TableCell>
+              <TableCell>Monday  </TableCell>
+              <TableCell>Tuesday  </TableCell>
+              <TableCell>Wednesday  </TableCell>
+              <TableCell>Thursday  </TableCell>
+              <TableCell>Friday  </TableCell>
+              <TableCell>Saturday  </TableCell>
+          
+            </TableRow>
+            :
+            <TableRow>
+              {columns.map((column, index) => (
+                <TableCell key={index}>{column}</TableCell>
+              ))}
+            </TableRow>
+          }
         </TableHead>
         <TableBody>
           {data.map((row, rowIndex) => (
@@ -572,7 +585,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                               <WaterTreatmentHeader />
                             </Box>
                             <Typography variant="h6" gutterBottom>Make-Up Condenser Water</Typography>
-                            {renderTableData(condenserWater, ['Day', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action'])}
+                            {renderTableData(condenserWater, ['Date', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action','Signature'])}
                             <Typography variant="h6" gutterBottom>Chilled Water</Typography>
                             {renderTableData(chilledWater, ['Day', 'Conductivity', 'Action', 'Name', 'Signature'])}
 
