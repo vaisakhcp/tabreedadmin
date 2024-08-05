@@ -295,7 +295,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   );
 
   const renderListData = (data) => (
-    <div>
+    
     <List dense>
       {data.flatMap(item => item.notes).map((note, index) => ( 
         <ListItem key={index}>
@@ -307,8 +307,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
           <ListItemText primary={note} sx={{ color: '#000' }} />
         </ListItem>
       ))}
-  </List>
-  </div>
+    </List>
   );
   
   const renderNotes = () => (
@@ -463,7 +462,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                   <Box sx={{ mt: 3 }}>
                     <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
                        <Tab label="AD-002" />
-                      <Tab label="AD-004" />
+                      <Tab label="AD-009" />
                     </Tabs>
                     <Box sx={{ mt: 2 }}>
                       {detailsSubTabIndex === 0 && (
@@ -473,7 +472,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                       )}
                       {detailsSubTabIndex === 1 && (
                         <List dense>
-                          {renderSubmissions('AD-004')}
+                          {renderSubmissions('AD-009')}
                         </List>
                       )}
                     </Box>
@@ -483,7 +482,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                   <Box sx={{ mt: 3 }}>
                     <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
                       <Tab label="AD-002" />
-                      <Tab label="AD-004" />
+                      <Tab label="AD-009" />
                     </Tabs>
                     <Box sx={{ mt: 2 }}>
                       {detailsSubTabIndex === 0 && (
@@ -583,7 +582,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                   <Box sx={{ mt: 3 }}>
                     <Tabs value={waterTreatmentSubTabIndex} onChange={handleWaterTreatmentSubTabChange} centered>
                     <Tab label="AD-002" />
-                    <Tab label="AD-004" />
+                    <Tab label="AD-009" />
                     </Tabs>
                     <Box sx={{ mt: 2 }}>
                       {waterTreatmentSubTabIndex === 0 && (
@@ -594,6 +593,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
             
                           <Typography variant="h6" gutterBottom>Make-Up Condenser Water</Typography>
                           {renderTableData(condenserWater, ['Day', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action'])}
+{JSON.stringify(chilledWater)}
                           <Typography variant="h6" gutterBottom>Chilled Water</Typography>
                           {renderTableData(chilledWater, ['Day', 'Conductivity', 'Action','Name','Signature'])}
 
