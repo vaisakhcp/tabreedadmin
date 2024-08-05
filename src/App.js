@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import AdminDetail from './AdminDetail';
-import {createTheme,useMediaQuery,
-  Container, Box, Paper, List, ListItem, ListItemText, TextField, Button, Typography,
-  CircularProgress, Tabs, Tab, ListItemIcon, Table, TableBody, TableContainer,
-  TableHead, TableRow, TableCell, TablePagination, Chip, Grid, IconButton
+import {
+  createTheme, useMediaQuery, Container, Box, Paper, List, ListItem, ListItemText, TextField, Button, Typography,
+  CircularProgress, Tabs, Tab, ListItemIcon, Table, TableBody, TableContainer, TableHead, TableRow, TableCell,
+  TablePagination, Chip, Grid, IconButton
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { db } from './firebaseConfig'; // Ensure your Firebase config is correctly imported
 import { collection, getDocs } from 'firebase/firestore';
 
@@ -27,6 +28,8 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const [detailsSubTabIndex, setDetailsSubTabIndex] = useState(0);
   const [waterTreatmentSubTabIndex, setWaterTreatmentSubTabIndex] = useState(0);
+  const [showTabs, setShowTabs] = useState(false); // New state variable to manage tab visibility
+  const [showTable, setShowTable] = useState(false); // New state variable to manage table visibility
   const [searchQuery, setSearchQuery] = useState('');
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
@@ -281,31 +284,23 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       </Typography>
       <Chip label="Plant Name: AD-002" color="primary" size="small" sx={{ mt: 0.5 }} />
       <Box sx={{ mt: 1 }}>
-            <Grid container spacing={1} alignItems="center">
-              <Grid item xs={12} sm={4}>
-                <Typography variant="subtitle2">Operations Department: TOM-OPS-FM-2009</Typography>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Typography variant="subtitle2">Revision 03 Dated: 25/10/2021</Typography>
-              </Grid>
-              <Grid item xs={12} sm={4}>
-                <Typography variant="subtitle2">Replaces Revision 02 of: 19/03/2005</Typography>
-              </Grid>
-            </Grid>
-          </Box>
-      {/* <Box sx={{ mt: 1 }}>
         <Grid container spacing={1} alignItems="center">
           <Grid item xs={12} sm={4}>
-            <Typography variant="subtitle2">Operations Department</Typography>
+            <Typography variant="subtitle2">Operations Department: TOM-OPS-FM-2009</Typography>
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Typography variant="subtitle2">Revision 03 Dated: 25/10/2021</Typography>
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Typography variant="subtitle2">Replaces Revision 02 of: 19/03/2005</Typography>
           </Grid>
         </Grid>
-      </Box> */}
+      </Box>
     </Box>
   );
 
   const renderListData = (data) => (
     <List dense>
-      {JSON.stringify(data)}
       {data.flatMap(item => item.notes).map((note, index) => (
         <ListItem key={index}>
           <ListItemIcon>
@@ -391,6 +386,15 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       </Box>
     </Box>
   );
+
+  const handleListItemClick = () => {
+    setShowTabs(true);
+    setShowTable(true);
+  };
+
+  const handleBackClick = () => {
+    setShowTable(false);
+  };
 
   if (!loggedIn) {
     return (
@@ -550,36 +554,59 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
           )}
           {tabIndex === 2 && (
             <Box sx={{ mt: 3 }}>
-              <Tabs value={waterTreatmentSubTabIndex} onChange={handleWaterTreatmentSubTabChange} centered>
-                <Tab label="AD-002" />
-                <Tab label="AD-009" />
-              </Tabs>
-              <Box sx={{ mt: 2 }}>
-                {waterTreatmentSubTabIndex === 0 && (
-                  <Box>
-                    <Box sx={{ mt: 3 }}>
-                      <WaterTreatmentHeader />
-                    </Box>
-                    <Typography variant="h6" gutterBottom>Make-Up Condenser Water</Typography>
-                    {renderTableData(condenserWater, ['Day', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action'])}
-                    <Typography variant="h6" gutterBottom>Chilled Water</Typography>
-                    {renderTableData(chilledWater, ['Day', 'Conductivity', 'Action', 'Name', 'Signature'])}
+              {showTabs ? (
+                <>
+                  {showTable ? (
+                    <>
+                      <IconButton onClick={handleBackClick}>
+                        <ArrowBackIcon />
+                      </IconButton>
+                      <Tabs value={waterTreatmentSubTabIndex} onChange={handleWaterTreatmentSubTabChange} centered>
+                        <Tab label="AD-002" />
+                        <Tab label="AD-009" />
+                      </Tabs>
+                      <Box sx={{ mt: 2 }}>
+                        {waterTreatmentSubTabIndex === 0 && (
+                          <Box>
+                            <Box sx={{ mt: 3 }}>
+                              <WaterTreatmentHeader />
+                            </Box>
+                            <Typography variant="h6" gutterBottom>Make-Up Condenser Water</Typography>
+                            {renderTableData(condenserWater, ['Day', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action'])}
+                            <Typography variant="h6" gutterBottom>Chilled Water</Typography>
+                            {renderTableData(chilledWater, ['Day', 'Conductivity', 'Action', 'Name', 'Signature'])}
 
-                    <Typography variant="h6" gutterBottom>Condenser Chemicals</Typography>
-                    {renderTableData(condenserChemicals, ['Product Name', 'Opening Stock (Kg)', 'Closing Stock (Kg)', 'Consumption (Kg)'])}
+                            <Typography variant="h6" gutterBottom>Condenser Chemicals</Typography>
+                            {renderTableData(condenserChemicals, ['Product Name', 'Opening Stock (Kg)', 'Closing Stock (Kg)', 'Consumption (Kg)'])}
 
-                    <Typography variant="h6" gutterBottom>Cooling Tower Chemicals</Typography>
-                    {renderTableData(coolingTowerChemicals, ['Product Name', 'Available empty Jerry Cans in plants (06-11-2022)'])}
-                    <Typography variant="h6" gutterBottom>Notes</Typography>
-                    {renderListData(notes)}
-                  </Box>
-                )}
-                {waterTreatmentSubTabIndex === 1 && (
-                  <Box>
-                    {/* Blank content for now */}
-                  </Box>
-                )}
-              </Box>
+                            <Typography variant="h6" gutterBottom>Cooling Tower Chemicals</Typography>
+                            {renderTableData(coolingTowerChemicals, ['Product Name', 'Available empty Jerry Cans in plants (06-11-2022)'])}
+                            <Typography variant="h6" gutterBottom>Notes</Typography>
+                            {renderListData(notes)}
+                          </Box>
+                        )}
+                        {waterTreatmentSubTabIndex === 1 && (
+                          <Box>
+                            {/* Blank content for now */}
+                          </Box>
+                        )}
+                      </Box>
+                    </>
+                  ) : (
+                    <List>
+                      <ListItem button onClick={handleListItemClick} sx={{ backgroundColor: '#e0e0e0', borderRadius: '10px', mb: 2 }}>
+                        <ListItemText primary="1. Week Commencing Sunday: 28th July 2024 to 3rd August 2024" />
+                      </ListItem>
+                    </List>
+                  )}
+                </>
+              ) : (
+                <List>
+                  <ListItem button onClick={handleListItemClick} sx={{ backgroundColor: '#e0e0e0', borderRadius: '10px', mb: 2 }}>
+                    <ListItemText primary="1. Week Commencing Sunday: 28th July 2024 to 3rd August 2024" />
+                  </ListItem>
+                </List>
+              )}
             </Box>
           )}
         </>
