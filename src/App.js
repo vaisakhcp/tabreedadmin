@@ -295,7 +295,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       <Typography variant="subtitle1" component="h2">
         Week Commencing Sunday
       </Typography>
-      <Chip label="Plant Name: AD-002" color="primary" size="small" sx={{ mt: 0.5 }} />
+      <Chip label="Plant Name: AD-001" color="primary" size="small" sx={{ mt: 0.5 }} />
       <Box sx={{ mt: 1 }}>
         <Grid container spacing={1} alignItems="center">
           <Grid item xs={12} sm={4}>
@@ -468,13 +468,13 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
           {tabIndex === 0 && (
             <Box sx={{ mt: 3 }}>
               <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
-                <Tab label="AD-002" />
+                <Tab label="AD-001" />
                 <Tab label="AD-009" />
               </Tabs>
               <Box sx={{ mt: 2 }}>
                 {detailsSubTabIndex === 0 && (
                   <List dense>
-                    {renderSubmissions('AD-002')}
+                    {renderSubmissions('AD-001')}
                   </List>
                 )}
                 {detailsSubTabIndex === 1 && (
@@ -488,7 +488,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
           {tabIndex === 1 && (
             <Box sx={{ mt: 3 }}>
               <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
-                <Tab label="AD-002" />
+                <Tab label="AD-001" />
                 <Tab label="AD-009" />
               </Tabs>
               <Box sx={{ mt: 2 }}>
@@ -575,7 +575,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                         <ArrowBackIcon />
                       </IconButton>
                       <Tabs value={waterTreatmentSubTabIndex} onChange={handleWaterTreatmentSubTabChange} centered>
-                        <Tab label="AD-002" />
+                        <Tab label="AD-001" />
                         <Tab label="AD-009" />
                       </Tabs>
                       <Box sx={{ mt: 2 }}>
@@ -608,7 +608,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                   ) : (
                     <List>
                       <ListItem button onClick={handleListItemClick} sx={{ backgroundColor: '#e0e0e0', borderRadius: '10px', mb: 2 }}>
-                        <ListItemText primary="1. Week Commencing Sunday: 28th July 2024 to 3rd August 2024" />
+                        <ListItemText primary="1. Week Commencing Sunday: 04 August 2024 to Saturday to 10 August 2024" />
                       </ListItem>
                     </List>
                   )}
