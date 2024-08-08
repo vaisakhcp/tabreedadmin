@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import AdminDetail from './AdminDetail';
-import {ListItemText,
+import {
+  ListItemText,
   createTheme, useMediaQuery, Container, Box, Paper, List, ListItem, TextField, Button, Typography,
   CircularProgress, Tabs, Tab, Table, TableBody, TableContainer, TableHead, TableRow, TableCell,
   TablePagination, Chip, Grid, IconButton
@@ -56,11 +57,12 @@ const renderTableData = (data, columns) => (
     </Table>
   </TableContainer>
 );
+
 const AdminList = ({ setLoggedIn, loggedIn }) => {
   const navigate = useNavigate(); // Hook for navigation
   const [submissions, setSubmissions] = useState([]);
   const [userCheckIns, setUserCheckIns] = useState([]);
-  
+
   const [condenserWater1, setCondenserWater1] = useState([]);
   const [chilledWater1, setChilledWater1] = useState([]);
   const [condenserChemicals1, setCondenserChemicals1] = useState([]);
@@ -197,6 +199,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       console.error("Error fetching notes: ", error);
     }
   };
+
   const renderPlantVisitorLog = (plantName) => {
     const filteredCheckIns = userCheckIns
       .filter(checkIn => checkIn.plantName === plantName)
@@ -311,16 +314,16 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
         return { id: doc.id, ...data };
       });
       setUserCheckIns(userCheckInsData);
-  
+
       const submissionsSnapshot = await getDocs(collection(db, 'shiftHandOvers'));
       const submissionsData = submissionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setSubmissions(submissionsData);
-  
+
       const fetchChemicalData = async (collectionName) => {
         const snapshot = await getDocs(collection(db, collectionName));
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       };
-  
+
       setCondenserWater1(await fetchChemicalData('condenserWater1'));
       setChilledWater1(await fetchChemicalData('chilledWater1'));
       setCondenserChemicals1(await fetchChemicalData('condenserChemicals1'));
@@ -329,8 +332,8 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       setChilledWater2(await fetchChemicalData('chilledWater2'));
       setCondenserChemicals2(await fetchChemicalData('condenserChemicals2'));
       setCoolingTowerChemicals2(await fetchChemicalData('coolingTowerChemicals2'));
-      setAdditionalData(await fetchChemicalData('additionalTable'));
-  
+      setAdditionalData(await fetchChemicalData('additionalDataTable'));
+
       await fetchNotes();
       setLoading(false);
     } catch (error) {
@@ -338,58 +341,15 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       setLoading(false);
     }
   };
-  
-  useEffect(() => {
-    fetchData();
-  }, []);
-  
-  useEffect(() => {
-    fetchData();
-  }, []);
-  
-  useEffect(() => {
-    fetchData();
-  }, []);
- 
 
-  
-  const renderTableData = (data, columns) => (
-    <Box sx={{ padding: '16px' }}>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              {columns.map((column, index) => (
-                <TableCell key={index} sx={{ fontWeight: 'bold', padding: '8px' }}>{column}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.map((row, rowIndex) => (
-              <TableRow key={rowIndex}>
-                {columns.map((column, colIndex) => (
-                  <TableCell key={colIndex} sx={{ padding: '8px' }}>
-                    {column === 'Signature' && row[column] ? (
-                      <img src={row[column]} alt="Signature" style={{ width: '100px', height: '50px' }} />
-                    ) : typeof row[column] === 'object' && row[column].seconds !== undefined ? (
-                      timestampToDateString(row[column])
-                    ) : (
-                      row[column]
-                    )}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
-  );
-  
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const renderCoolingTowerChemicalsTableData = (data) => {
     const signatureData = data.find(item => item.id === 'signature');
     const chemicalsData = data.filter(item => item.id !== 'signature');
-  
+
     return (
       <Box sx={{ padding: '16px' }}>
         <TableContainer component={Paper}>
@@ -439,15 +399,15 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       </Box>
     );
   };
-  
+
   const renderChilledTableData = (data) => {
     if (!data || data.length === 0) return <Typography>No data available</Typography>;
-  
+
     // Take only the first item in the data array
     const row = data.find(item => item.id === 'technicianInfo');
     const signature = row?.signature;
     const technicianInfo = row?.name;
-  
+
     return (
       <TableContainer component={Paper} sx={{ overflowX: 'auto', mb: 3, padding: '16px' }}>
         <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
@@ -481,14 +441,13 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       </TableContainer>
     );
   };
-  
-  
+
   const renderCondenserChemicalTableData = (data) => {
     if (!data || data.length === 0) return <Typography>No data available</Typography>;
-  
+
     // Filter out metadata and technicianInfo if they are present in the data
     const filteredData = data.filter(item => item.id !== 'metadata' && item.id !== 'technicianInfo');
-  
+
     return (
       <TableContainer component={Paper} sx={{ padding: '16px' }}>
         <Table>
@@ -522,8 +481,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       </TableContainer>
     );
   };
-  
-  
+
   const renderNotes = (data) => (
     <TableContainer component={Paper} sx={{ mt: 3 }}>
       <Table>
@@ -547,20 +505,18 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                 </Typography>
               </TableCell>
               {index === 0 && (
-                <Box >
+                <Box>
                   <div>
                     {data[0].name}
-                    </div>
+                  </div>
                   <div>
-                    
-                  {data[0].signature ? (
+                    {data[0].signature ? (
                       <img src={data[0].signature} alt="Signature" style={{ width: '100px', height: '50px' }} />
                     ) : (
                       'N/A'
                     )}
-                    </div>
-                    
-                  </Box>
+                  </div>
+                </Box>
               )}
             </TableRow>
           ))}
@@ -568,11 +524,30 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       </Table>
     </TableContainer>
   );
-  
 
+  const renderAdditionalData = (data) => (
+    <TableContainer component={Paper} sx={{ mt: 3 }}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>No.</TableCell>
+            <TableCell>Data</TableCell>
+            <TableCell>Value</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {data.map((item, index) => (
+            <TableRow key={index}>
+              <TableCell>{index + 1}</TableCell>
+              <TableCell>{item.id}</TableCell>
+              <TableCell>{item.value}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
 
-
-  
   const filteredCheckIns = userCheckIns
     .filter(checkIn => {
       const queryMatch = checkIn.name.toLowerCase().includes(searchQuery.toLowerCase()) || checkIn.phoneNumber.includes(searchQuery);
@@ -606,10 +581,10 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   const WaterTreatmentHeader = () => (
     <Box sx={{ textAlign: 'center', mb: 3 }}>
       <Typography variant="h5" component="h1">
-      Water Treatment Weekly Report
+        Water Treatment Weekly Report
       </Typography>
       <Typography variant="subtitle1" component="h2">
-      Week Commencing Sunday: 4th August 2024 to 10th August 2024
+        Week Commencing Sunday: 4th August 2024 to 10th August 2024
       </Typography>
       <Chip label="Plant Name: AD-001" color="primary" size="small" sx={{ mt: 0.5 }} />
       <Box sx={{ mt: 1 }}>
@@ -680,7 +655,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   return (
     <Container component={Paper} sx={{ p: 3, mt: 3, minHeight: '100vh', backgroundColor: '#fff' }}>
       <Typography variant="h5" component="h2" gutterBottom textAlign="center" sx={{ color: '#000' }}>
-        Admin Panel  
+        Admin Panel
       </Typography>
       <Tabs value={tabIndex} onChange={handleTabChange} centered>
         <Tab label="Shift Transfer Log" />
@@ -713,18 +688,18 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
               </Box>
             </Box>
           )}
-        {tabIndex === 1 && (
-  <Box sx={{ mt: 3 }}>
-    <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
-      <Tab label="AD-001" />
-      <Tab label="AD-008" />
-    </Tabs>
-    <Box sx={{ mt: 2 }}>
-      {detailsSubTabIndex === 0 && renderPlantVisitorLog('AD-001')}
-      {detailsSubTabIndex === 1 && renderPlantVisitorLog('AD-008')}
-    </Box>
-  </Box>
-)}
+          {tabIndex === 1 && (
+            <Box sx={{ mt: 3 }}>
+              <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
+                <Tab label="AD-001" />
+                <Tab label="AD-008" />
+              </Tabs>
+              <Box sx={{ mt: 2 }}>
+                {detailsSubTabIndex === 0 && renderPlantVisitorLog('AD-001')}
+                {detailsSubTabIndex === 1 && renderPlantVisitorLog('AD-008')}
+              </Box>
+            </Box>
+          )}
           {tabIndex === 2 && (
             <Box sx={{ mt: 3 }}>
               {showTabs ? (
@@ -745,13 +720,15 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                               <WaterTreatmentHeader />
                             </Box>
                             <Typography variant="h6" gutterBottom>Make-Up Condenser Water</Typography>
-                            {renderTableData(condenserWater1, ['Date', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action','Name', 'Signature'])}
+                            {renderTableData(condenserWater1, ['Date', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action', 'Name', 'Signature'])}
                             <Typography variant="h6" gutterBottom>Chilled Water</Typography>
                             {renderChilledTableData(chilledWater1)}
                             <Typography variant="h6" gutterBottom>Condenser Chemicals</Typography>
                             {renderCondenserChemicalTableData(condenserChemicals1)}
                             <Typography variant="h6" gutterBottom>Cooling Tower Chemicals</Typography>
                             {renderCoolingTowerChemicalsTableData(coolingTowerChemicals1)}
+                            <Typography variant="h6" gutterBottom>Additional Data</Typography>
+                            {renderAdditionalData(additionalData)}
                             <Typography variant="h6" gutterBottom>Notes</Typography>
                             {renderNotes(notes1)}
                           </Box>
@@ -769,6 +746,8 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                             {renderTableData(condenserChemicals2, ['Product Name', 'Opening Stock (Kg)', 'Closing Stock (Kg)', 'Consumption (Kg)'])}
                             <Typography variant="h6" gutterBottom>Cooling Tower Chemicals</Typography>
                             {renderTableData(coolingTowerChemicals2, ['Product Name', 'Available empty Jerry Cans in plants (06-11-2022)'])}
+                            <Typography variant="h6" gutterBottom>Additional Data</Typography>
+                            {renderAdditionalData(additionalData)}
                             <Typography variant="h6" gutterBottom>Notes</Typography>
                             {renderNotes(notes2)}
                           </Box>
@@ -778,7 +757,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                   ) : (
                     <List>
                       <ListItem button onClick={handleListItemClick} sx={{ backgroundColor: '#e0e0e0', borderRadius: '10px', mb: 2 }}>
-                        <ListItemText primary="1. Week Commensing 4th August 2024 to 10th August 2024" />
+                        <ListItemText primary="1. Week Commencing 4th August 2024 to 10th August 2024" />
                       </ListItem>
                     </List>
                   )}
@@ -786,7 +765,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
               ) : (
                 <List>
                   <ListItem button onClick={handleListItemClick} sx={{ backgroundColor: '#e0e0e0', borderRadius: '10px', mb: 2 }}>
-                    <ListItemText primary="1. Week Commensing 4th August 2024 to 10th August 2024" />
+                    <ListItemText primary="1. Week Commencing 4th August 2024 to 10th August 2024" />
                   </ListItem>
                 </List>
               )}
