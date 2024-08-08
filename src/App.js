@@ -14,18 +14,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-const timestampToDateString = (timestamp) => {
-  if (!timestamp) return '';
-  if (timestamp.toDate) {
-    const date = timestamp.toDate();
-    return date.toLocaleString(); // Or any format you prefer
-  }
-  if (timestamp.seconds !== undefined) {
-    const date = new Date(timestamp.seconds * 1000);
-    return date.toLocaleString();
-  }
-  return timestamp; // If it's already a string or other format
-};
+
 const dayOrder = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const sortByDayOrder = (data) => {
   return data.sort((a, b) => {
@@ -315,8 +304,8 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
         const data = doc.data();
         data.checkIns = data.checkIns.map(ci => ({
           ...ci,
-          checkInDate: timestampToDateString(ci.checkInDate),
-          checkOutDate: timestampToDateString(ci.checkOutDate),
+          checkInDate: ci.checkInDate,
+          checkOutDate: ci.checkOutDate,
         }));
         return { id: doc.id, ...data };
       });
@@ -408,84 +397,104 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   };
 
   const renderChilledTableData = (data) => {
-    if (!data || data.length === 0) return <Typography>No data available</Typography>;
-
-    // Take only the first item in the data array
-    const row = data.find(item => item.id === 'technicianInfo');
-    const signature = row?.signature;
-    const technicianInfo = row?.name;
-
+    if (!data || data.length === 0) {
+      return <Typography>No data available</Typography>;
+    }
+  
+    console.log('Received data:', data);
+  
+    // Separate the main data from technicianInfo and signature
+    const mainData = data.find(item => item.id === 'signature'); // Directly get the signature object as mainData
+    const technicianInfo = data.find(item => item.id === 'technicianInfo')?.name || 'N/A';
+    const signature = mainData?.signature || 'N/A'; // Extract signature from mainData 
+    console.log('Main data:', mainData);
+    console.log('Technician Info:', technicianInfo);
+    console.log('Signature:', signature);
+  
     return (
-      <TableContainer component={Paper} sx={{ overflowX: 'auto', mb: 3, padding: '16px' }}>
-        <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 'bold', fontSize: '14px', padding: '8px' }}>Day</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', fontSize: '14px', padding: '8px' }}>Conductivity</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', fontSize: '14px', padding: '8px' }}>Action</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', fontSize: '14px', padding: '8px' }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', fontSize: '14px', padding: '8px' }}>Signature</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {row && (
+      <Box sx={{ padding: '16px' }}>
+        <TableContainer component={Paper} sx={{ overflowX: 'auto', mb: 3 }}>
+          <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
+            <TableHead>
               <TableRow>
-                <TableCell sx={{ padding: '8px' }}>{timestampToDateString(row.Day)}</TableCell>
-                <TableCell sx={{ padding: '8px' }}>{row.Conductivity}</TableCell>
-                <TableCell sx={{ padding: '8px' }}>{row.Action}</TableCell>
-                <TableCell sx={{ padding: '8px' }}>{technicianInfo || 'N/A'}</TableCell>
-                <TableCell sx={{ padding: '8px' }}>
-                  {signature ? (
-                    <img src={signature} alt="Signature" style={{ width: '100px', height: '50px' }} />
-                  ) : (
-                    'N/A'
-                  )}
-                </TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '14px', padding: '8px' }}>Day</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '14px', padding: '8px' }}>Conductivity</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '14px', padding: '8px' }}>Action</TableCell>
               </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow > 
+                <TableCell sx={{ padding: '8px' }}>
+                  {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                </TableCell>
+                <TableCell sx={{ padding: '8px' }}>{ mainData?.Conductivity}</TableCell>
+                <TableCell sx={{ padding: '8px' }}>{ mainData?.Action}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt:   
+   3 }}>
+          <Typography variant="body1">Name: {technicianInfo}</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="body1" sx={{ mr: 2 }}>Signature:</Typography>
+            {signature !== 'N/A' ? (
+              <img src={signature} alt="Signature" style={{ width: '100px', height: '50px' }} />
+            ) : (
+              <Typography variant="body1">N/A</Typography>
             )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+          </Box>
+        </Box>
+      </Box>
     );
   };
-
+  
   const renderCondenserChemicalTableData = (data) => {
     if (!data || data.length === 0) return <Typography>No data available</Typography>;
 
-    // Filter out metadata and technicianInfo if they are present in the data
+    // Extract metadata and technicianInfo from the data
+    const metadata = data.find(item => item.id === 'metadata') || {};
+    const technicianInfo = data.find(item => item.id === 'technicianInfo') || {};
+
+    // Filter out metadata and technicianInfo from the data
     const filteredData = data.filter(item => item.id !== 'metadata' && item.id !== 'technicianInfo');
 
     return (
+      <>
       <TableContainer component={Paper} sx={{ padding: '16px' }}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 'bold', padding: '8px' }}>Chemical</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', padding: '8px' }}>Stocks</TableCell>
               <TableCell sx={{ fontWeight: 'bold', padding: '8px' }}>Opening Stock (Kg)</TableCell>
               <TableCell sx={{ fontWeight: 'bold', padding: '8px' }}>Closing Stock (Kg)</TableCell>
               <TableCell sx={{ fontWeight: 'bold', padding: '8px' }}>Consumption (Kg)</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', padding: '8px' }}>Signature</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredData.map((row, index) => (
               <TableRow key={index}>
-                <TableCell sx={{ padding: '8px' }}>{row.id}</TableCell>
+                <TableCell sx={{ padding: '8px' }}>{row?.id.replace(/_/g, " ")}</TableCell>
                 <TableCell sx={{ padding: '8px' }}>{row['Opening Stock (Kg)']}</TableCell>
                 <TableCell sx={{ padding: '8px' }}>{row['Closing Stock (Kg)']}</TableCell>
                 <TableCell sx={{ padding: '8px' }}>{row['Consumption (Kg)']}</TableCell>
-                <TableCell sx={{ padding: '8px' }}>
-                  {row.signature ? (
-                    <img src={row.signature} alt="Signature" style={{ width: '100px', height: '50px' }} />
-                  ) : (
-                    'N/A'
-                  )}
-                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </TableContainer>
+        </TableContainer>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
+          <Typography variant="body1">Name: {technicianInfo.name || metadata.name}</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="body1" sx={{ mr: 2 }}>Signature:</Typography>
+            {technicianInfo.signature !== 'N/A' ? (
+              <img src={technicianInfo.signature || metadata.signature} alt="Signature" style={{ width: '100px', height: '50px' }} />
+            ) : (
+              <Typography variant="body1">N/A</Typography>
+            )}
+          </Box>
+        </Box>
+        </>
     );
   };
 
@@ -728,7 +737,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                             </Box>
                               <Typography variant="h6" gutterBottom>Make-Up Condenser Water</Typography>
                             {renderTableData(condenserWater1, ['id', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action', 'Name', 'Signature'])}
-                            <Typography variant="h6" gutterBottom>Chilled Water</Typography>
+                              <Typography variant="h6" gutterBottom>Chilled Water</Typography>
                             {renderChilledTableData(chilledWater1)}
                             <Typography variant="h6" gutterBottom>Condenser Chemicals</Typography>
                             {renderCondenserChemicalTableData(condenserChemicals1)}
