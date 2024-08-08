@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import AdminDetail from './AdminDetail';
 import {
   createTheme, useMediaQuery, Container, Box, Paper, List, ListItem, ListItemText, TextField, Button, Typography,
@@ -12,14 +12,20 @@ import { db } from './firebaseConfig'; // Ensure your Firebase config is correct
 import { collection, getDocs } from 'firebase/firestore';
 
 const AdminList = ({ setLoggedIn, loggedIn }) => {
+  const navigate = useNavigate(); // Hook for navigation
   const [submissions, setSubmissions] = useState([]);
   const [userCheckIns, setUserCheckIns] = useState([]);
-  const [condenserWater, setCondenserWater] = useState([]);
-  const [chilledWater, setChilledWater] = useState([]);
-  const [condenserChemicals, setCondenserChemicals] = useState([]);
-  const [coolingTowerChemicals, setCoolingTowerChemicals] = useState([]);
+  const [condenserWater1, setCondenserWater1] = useState([]);
+  const [chilledWater1, setChilledWater1] = useState([]);
+  const [condenserChemicals1, setCondenserChemicals1] = useState([]);
+  const [coolingTowerChemicals1, setCoolingTowerChemicals1] = useState([]);
+  const [condenserWater2, setCondenserWater2] = useState([]);
+  const [chilledWater2, setChilledWater2] = useState([]);
+  const [condenserChemicals2, setCondenserChemicals2] = useState([]);
+  const [coolingTowerChemicals2, setCoolingTowerChemicals2] = useState([]);
   const [additionalData, setAdditionalData] = useState([]);
-  const [notes, setNotes] = useState([]);
+  const [notes1, setNotes1] = useState([]);
+  const [notes2, setNotes2] = useState([]);
   const [noteInput, setNoteInput] = useState('');
   const [rows, setRows] = useState([{ Name: '', Signature: '' }]);
   const [username, setUsername] = useState('');
@@ -98,6 +104,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
     },
   });
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const handleTabChange = (event, newIndex) => {
     setTabIndex(newIndex);
   };
@@ -133,9 +140,13 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
 
   const fetchNotes = async () => {
     try {
-      const notesSnapshot = await getDocs(collection(db, 'notes'));
-      const notesData = notesSnapshot.docs.map(doc => doc.data());
-      setNotes(notesData);
+      const notesSnapshot1 = await getDocs(collection(db, 'notes1'));
+      const notesData1 = notesSnapshot1.docs.map(doc => doc.data());
+      setNotes1(notesData1);
+
+      const notesSnapshot2 = await getDocs(collection(db, 'notes2'));
+      const notesData2 = notesSnapshot2.docs.map(doc => doc.data());
+      setNotes2(notesData2);
     } catch (error) {
       console.error("Error fetching notes: ", error);
     }
@@ -144,63 +155,38 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   const fetchData = async () => {
     try {
       setLoading(true);
-
+  
       const userCheckInsSnapshot = await getDocs(collection(db, 'userCheckIns'));
-      const userCheckInsData = userCheckInsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      console.log('Fetched userCheckIns: ', userCheckInsData);
+      const userCheckInsData = userCheckInsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        data.checkIns = data.checkIns.map(ci => ({
+          ...ci,
+          checkInDate: timestampToDateString(ci.checkInDate),
+          checkOutDate: timestampToDateString(ci.checkOutDate),
+        }));
+        return { id: doc.id, ...data };
+      });
       setUserCheckIns(userCheckInsData);
-
+  
       const submissionsSnapshot = await getDocs(collection(db, 'shiftHandOvers'));
-      const submissionsData = submissionsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      console.log('Fetched submissions: ', submissionsData);
+      const submissionsData = submissionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setSubmissions(submissionsData);
-
-      const condenserWaterSnapshot = await getDocs(collection(db, 'condenserWater'));
-      const condenserWaterData = condenserWaterSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      console.log('Fetched condenserWater: ', condenserWaterData);
-      setCondenserWater(condenserWaterData);
-
-      const chilledWaterSnapshot = await getDocs(collection(db, 'chilledWater'));
-      const chilledWaterData = chilledWaterSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      console.log('Fetched chilledWater: ', chilledWaterData);
-      setChilledWater(chilledWaterData);
-
-      const condenserChemicalsSnapshot = await getDocs(collection(db, 'condenserChemicals'));
-      const condenserChemicalsData = condenserChemicalsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      console.log('Fetched condenserChemicals: ', condenserChemicalsData);
-      setCondenserChemicals(condenserChemicalsData);
-
-      const coolingTowerChemicalsSnapshot = await getDocs(collection(db, 'coolingTowerChemicals'));
-      const coolingTowerChemicalsData = coolingTowerChemicalsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      console.log('Fetched coolingTowerChemicals: ', coolingTowerChemicalsData);
-      setCoolingTowerChemicals(coolingTowerChemicalsData);
-
-      const additionalDataSnapshot = await getDocs(collection(db, 'additionalTable'));
-      const additionalDataContent = additionalDataSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      console.log('Fetched additionalData: ', additionalDataContent);
-      setAdditionalData(additionalDataContent);
-
+  
+      const fetchChemicalData = async (collectionName) => {
+        const snapshot = await getDocs(collection(db, collectionName));
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      };
+  
+      setCondenserWater1(await fetchChemicalData('condenserWater1'));
+      setChilledWater1(await fetchChemicalData('chilledWater1'));
+      setCondenserChemicals1(await fetchChemicalData('condenserChemicals1'));
+      setCoolingTowerChemicals1(await fetchChemicalData('coolingTowerChemicals1'));
+      setCondenserWater2(await fetchChemicalData('condenserWater2'));
+      setChilledWater2(await fetchChemicalData('chilledWater2'));
+      setCondenserChemicals2(await fetchChemicalData('condenserChemicals2'));
+      setCoolingTowerChemicals2(await fetchChemicalData('coolingTowerChemicals2'));
+      setAdditionalData(await fetchChemicalData('additionalTable'));
+  
       await fetchNotes();
       setLoading(false);
     } catch (error) {
@@ -208,33 +194,77 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       setLoading(false);
     }
   };
-
+  
   useEffect(() => {
     fetchData();
   }, []);
-
+  
+  useEffect(() => {
+    fetchData();
+  }, []);
+  
+  useEffect(() => {
+    fetchData();
+  }, []);
+  const timestampToDateString = (timestamp) => {
+    if (!timestamp) return '';
+    if (timestamp.toDate) {
+      const date = timestamp.toDate();
+      return date.toLocaleString(); // Or any format you prefer
+    }
+    if (timestamp.seconds !== undefined) {
+      const date = new Date(timestamp.seconds * 1000);
+      return date.toLocaleString();
+    }
+    return timestamp; // If it's already a string or other format
+  };
+  const renderCondenserChemicalTableData = (data) => {
+    if (!data || data.length === 0) return <Typography>No data available</Typography>;
+  
+    const metadata = data.find((item) => item.id === 'metadata');
+  
+    if (!metadata) return <Typography>No metadata available</Typography>;
+  
+    return (
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Opening Stock (Kg)</TableCell>
+              <TableCell>Closing Stock (Kg)</TableCell>
+              <TableCell>Consumption (Kg)</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell>Signature</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
+              <TableCell>{metadata['Opening Stock (Kg)']}</TableCell>
+              <TableCell>{metadata['Closing Stock (Kg)']}</TableCell>
+              <TableCell>{metadata['Consumption (Kg)']}</TableCell>
+              <TableCell>{metadata.name}</TableCell>
+              <TableCell>
+                {metadata.signature ? (
+                  <img src={metadata.signature} alt="Signature" style={{ width: '100px', height: '50px' }} />
+                ) : (
+                  'N/A'
+                )}
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
   const renderTableData = (data, columns) => (
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
-          {data === 'Data' ?
-            <TableRow>
-              <TableCell>Sunday  </TableCell>
-              <TableCell>Monday  </TableCell>
-              <TableCell>Tuesday  </TableCell>
-              <TableCell>Wednesday  </TableCell>
-              <TableCell>Thursday  </TableCell>
-              <TableCell>Friday  </TableCell>
-              <TableCell>Saturday  </TableCell>
-          
-            </TableRow>
-            :
-            <TableRow>
-              {columns.map((column, index) => (
-                <TableCell key={index}>{column}</TableCell>
-              ))}
-            </TableRow>
-          }
+          <TableRow>
+            {columns.map((column, index) => (
+              <TableCell key={index}>{column}</TableCell>
+            ))}
+          </TableRow>
         </TableHead>
         <TableBody>
           {data.map((row, rowIndex) => (
@@ -243,6 +273,8 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                 <TableCell key={colIndex}>
                   {column === 'Signature' && row[column] ? (
                     <img src={row[column]} alt="Signature" style={{ width: '100px', height: '50px' }} />
+                  ) : typeof row[column] === 'object' && row[column].seconds !== undefined ? (
+                    timestampToDateString(row[column])
                   ) : (
                     row[column]
                   )}
@@ -254,7 +286,96 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       </Table>
     </TableContainer>
   );
+  const renderCoolingTowerChemicalsTableData = (data) => {
+    const signatureData = data.find(item => item.id === 'signature');
+    const chemicalsData = data.filter(item => item.id !== 'signature');
+  
+    return (
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Stock</TableCell>
+              <TableCell>Available empty Jerry Cans in plants</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {chemicalsData.map((row, index) => (
+              <TableRow key={index}>
+                <TableCell>{row.id}</TableCell>
+                <TableCell>{row['Available empty Jerry Cans in plants (04-08-2024)']}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        {signatureData && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2, gap: 3 }}>
+            <Typography variant="body1" sx={{ flex: 1 }}>
+              Name: test
+            </Typography>
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                border: '1px solid lightgrey',
+                height: '50px',
+              }}
+            >
+              {signatureData.signature ? (
+                <img src={signatureData.signature} alt="Signature" style={{ width: '100px', height: '50px' }} />
+              ) : (
+                'N/A'
+              )}
+            </Box>
+          </Box>
+        )}
+      </TableContainer>
+    );
+  };
+  
+  const renderChilledTableData = (data) => {
+    if (data.length === 0) return <Typography>No data available</Typography>;
 
+    const row = data.find((item) => item.id === 'o1e9jgjMAOCddpPlMRpo');
+    const signature = data.find((item) => item.id === 'signature')?.signature;
+    const technicianInfo = data.find((item) => item.id === 'technicianInfo');
+  
+    return (
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Day</TableCell>
+              <TableCell>Conductivity</TableCell>
+              <TableCell>Action</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell>Signature</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {row && (
+              <TableRow>
+                <TableCell>{timestampToDateString(row.Day)}</TableCell>
+                <TableCell>{row.Conductivity}</TableCell>
+                <TableCell>{row.Action}</TableCell>
+                <TableCell>{technicianInfo?.name || 'N/A'}</TableCell>
+                <TableCell>
+                  {signature ? (
+                    <img src={signature} alt="Signature" style={{ width: '100px', height: '50px' }} />
+                  ) : (
+                    'N/A'
+                  )}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
+  
   const filteredCheckIns = userCheckIns
     .filter(checkIn => {
       const queryMatch = checkIn.name.toLowerCase().includes(searchQuery.toLowerCase()) || checkIn.phoneNumber.includes(searchQuery);
@@ -272,7 +393,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
     return submissions
       .filter(submission => submission.plantName === plantName)
       .map((submission, index) => (
-        <ListItem key={submission.id} button>
+        <ListItem key={submission.id} button onClick={() => navigate(`/admin/${submission.id}`)}>
           <ListItemIcon>
             <Typography variant="body1" sx={{ color: '#000' }}>
               {index + 1}.
@@ -327,7 +448,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
     </List>
   );
 
-  const renderNotes = () => (
+  const renderNotes = (notes) => (
     <Box sx={{ mt: 2 }}>
       <Typography variant="h6">Notes</Typography>
       <List>
@@ -344,7 +465,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
             onChange={(e) => setNoteInput(e.target.value)}
             placeholder="Add a note"
           />
-          <IconButton color="primary" onClick={() => setNotes([...notes, noteInput])}>
+          <IconButton color="primary" onClick={() => setNotes1([...notes1, noteInput])}>
             <AddIcon />
           </IconButton>
         </ListItem>
@@ -452,7 +573,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   return (
     <Container component={Paper} sx={{ p: 3, mt: 3, minHeight: '100vh', backgroundColor: '#fff' }}>
       <Typography variant="h5" component="h2" gutterBottom textAlign="center" sx={{ color: '#000' }}>
-        Admin Panel
+        Admin Panel  
       </Typography>
       <Tabs value={tabIndex} onChange={handleTabChange} centered>
         <Tab label="Shift Transfer Log" />
@@ -469,7 +590,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
             <Box sx={{ mt: 3 }}>
               <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
                 <Tab label="AD-001" />
-                <Tab label="AD-009" />
+                <Tab label="AD-008" />
               </Tabs>
               <Box sx={{ mt: 2 }}>
                 {detailsSubTabIndex === 0 && (
@@ -479,7 +600,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                 )}
                 {detailsSubTabIndex === 1 && (
                   <List dense>
-                    {renderSubmissions('AD-009')}
+                    {renderSubmissions('AD-008')}
                   </List>
                 )}
               </Box>
@@ -489,7 +610,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
             <Box sx={{ mt: 3 }}>
               <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
                 <Tab label="AD-001" />
-                <Tab label="AD-009" />
+                <Tab label="AD-008" />
               </Tabs>
               <Box sx={{ mt: 2 }}>
                 {detailsSubTabIndex === 0 && (
@@ -576,31 +697,43 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                       </IconButton>
                       <Tabs value={waterTreatmentSubTabIndex} onChange={handleWaterTreatmentSubTabChange} centered>
                         <Tab label="AD-001" />
-                        <Tab label="AD-009" />
+                        <Tab label="AD-008" />
                       </Tabs>
                       <Box sx={{ mt: 2 }}>
                         {waterTreatmentSubTabIndex === 0 && (
                           <Box>
                             <Box sx={{ mt: 3 }}>
                               <WaterTreatmentHeader />
-                            </Box>
+                              </Box>
+  
+                              
                             <Typography variant="h6" gutterBottom>Make-Up Condenser Water</Typography>
-                            {renderTableData(condenserWater, ['Date', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action','Signature'])}
+                            {renderTableData(condenserWater1, ['Date', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action', 'Signature'])}
                             <Typography variant="h6" gutterBottom>Chilled Water</Typography>
-                            {renderTableData(chilledWater, ['Day', 'Conductivity', 'Action', 'Name', 'Signature'])}
-
+                            {renderChilledTableData(chilledWater1, ['Day', 'Conductivity', 'Action', 'Name', 'Signature'])}
                             <Typography variant="h6" gutterBottom>Condenser Chemicals</Typography>
-                            {renderTableData(condenserChemicals, ['Product Name', 'Opening Stock (Kg)', 'Closing Stock (Kg)', 'Consumption (Kg)'])}
-
+                            {renderCondenserChemicalTableData(condenserChemicals1, ['Product Name', 'Opening Stock (Kg)', 'Closing Stock (Kg)', 'Consumption (Kg)'])}
                             <Typography variant="h6" gutterBottom>Cooling Tower Chemicals</Typography>
-                            {renderTableData(coolingTowerChemicals, ['Product Name', 'Available empty Jerry Cans in plants (06-11-2022)'])}
+                            {renderCoolingTowerChemicalsTableData(coolingTowerChemicals1, ['Product Name', 'Available empty Jerry Cans in plants (06-11-2022)'])}
                             <Typography variant="h6" gutterBottom>Notes</Typography>
-                            {renderListData(notes)}
+                            {renderListData(notes1)}
                           </Box>
                         )}
                         {waterTreatmentSubTabIndex === 1 && (
                           <Box>
-                            {/* Blank content for now */}
+                            <Box sx={{ mt: 3 }}>
+                              <WaterTreatmentHeader />
+                            </Box>
+                            <Typography variant="h6" gutterBottom>Make-Up Condenser Water</Typography>
+                            {renderTableData(condenserWater2, ['Date', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action', 'Signature'])}
+                            <Typography variant="h6" gutterBottom>Chilled Water</Typography>
+                            {renderTableData(chilledWater2, ['Day', 'Conductivity', 'Action', 'Name', 'Signature'])}
+                            <Typography variant="h6" gutterBottom>Condenser Chemicals</Typography>
+                            {renderTableData(condenserChemicals2, ['Product Name', 'Opening Stock (Kg)', 'Closing Stock (Kg)', 'Consumption (Kg)'])}
+                            <Typography variant="h6" gutterBottom>Cooling Tower Chemicals</Typography>
+                            {renderTableData(coolingTowerChemicals2, ['Product Name', 'Available empty Jerry Cans in plants (06-11-2022)'])}
+                            <Typography variant="h6" gutterBottom>Notes</Typography>
+                            {renderListData(notes2)}
                           </Box>
                         )}
                       </Box>
