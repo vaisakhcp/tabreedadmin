@@ -344,7 +344,8 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
 
   const renderCoolingTowerChemicalsTableData = (data) => {
     const signatureData = data.find(item => item.id === 'signature');
-    const chemicalsData = data.filter(item => item.id !== 'signature');
+    const nameData = data.find(item => item.id === 'technicianName');
+    const chemicalsData = data.filter(item => item.id !== 'metadata' && item.id !== 'technicianInfo'&& item.id !== 'signature'&& item.id !== 'technicianName');
 
     return (
       <Box sx={{ padding: '16px' }}>
@@ -370,7 +371,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
           {signatureData && (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2, gap: 3 }}>
               <Typography variant="body1" sx={{ flex: 1 }}>
-                Name: {signatureData.technicianName || 'N/A'}
+                Name: {nameData?.name || 'N/A'}
               </Typography>
               <Box
                 sx={{
@@ -457,7 +458,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
     const technicianInfo = data.find(item => item.id === 'technicianInfo') || {};
 
     // Filter out metadata and technicianInfo from the data
-    const filteredData = data.filter(item => item.id !== 'metadata' && item.id !== 'technicianInfo');
+    const filteredData = data.filter(item => item.id !== 'metadata' && item.id !== 'technicianInfo'&& item.id !== 'signature'&& item.id !== 'technicianName');
 
     return (
       <>
@@ -741,7 +742,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                             {renderChilledTableData(chilledWater1)}
                             <Typography variant="h6" gutterBottom>Condenser Chemicals</Typography>
                             {renderCondenserChemicalTableData(condenserChemicals1)}
-                            <Typography variant="h6" gutterBottom>Cooling Tower Chemicals</Typography>
+                              <Typography variant="h6" gutterBottom>Cooling Tower Chemicals</Typography>
                             {renderCoolingTowerChemicalsTableData(coolingTowerChemicals1)}
                             <Typography variant="h6" gutterBottom>Additional Data</Typography>
                             {renderAdditionalData(additionalData)}
