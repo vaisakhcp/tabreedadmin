@@ -26,37 +26,44 @@ const timestampToDateString = (timestamp) => {
   }
   return timestamp; // If it's already a string or other format
 };
-
-const renderTableData = (data, columns) => (
-  <TableContainer component={Paper} sx={{ mb: 4 }}>
-    <Table>
-      <TableHead>
-        <TableRow>
-          {columns.map((column, index) => (
-            <TableCell key={index} sx={{ fontWeight: 'bold', padding: '8px' }}>{column}</TableCell>
-          ))}
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {data.map((row, rowIndex) => (
-          <TableRow key={rowIndex}>
-            {columns.map((column, colIndex) => (
-              <TableCell key={colIndex} sx={{ padding: '8px' }}>
-                {column === 'Signature' && row[column] ? (
-                  <img src={row[column]} alt="Signature" style={{ width: '100px', height: '50px' }} />
-                ) : typeof row[column] === 'object' && row[column].seconds !== undefined ? (
-                  timestampToDateString(row[column])
-                ) : (
-                  row[column]
-                )}
-              </TableCell>
+const dayOrder = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const sortByDayOrder = (data) => {
+  return data.sort((a, b) => {
+    return dayOrder.indexOf(a.id) - dayOrder.indexOf(b.id);
+  });
+};
+const renderTableData = (data, columns) => {
+  const sortedData = sortByDayOrder(data);
+  return (
+    <TableContainer component={Paper} sx={{ mb: 4 }}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            {columns.map((column, index) => (
+              <TableCell key={index} sx={{ fontWeight: 'bold', padding: '8px' }}>{column}</TableCell>
             ))}
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </TableContainer>
-);
+        </TableHead>
+        <TableBody>
+          {sortedData.map((row, rowIndex) => (
+            <TableRow key={rowIndex}>
+              {columns.map((column, colIndex) => (
+                <TableCell key={colIndex} sx={{ padding: '8px' }}>
+                  {column === 'Signature' && row[column] ? (
+                    <img src={row[column]} alt="Signature" style={{ width: '100px', height: '50px' }} />
+                  ) : (
+                    row[column]
+                  )}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+};
+
 
 const AdminList = ({ setLoggedIn, loggedIn }) => {
   const navigate = useNavigate(); // Hook for navigation
@@ -356,7 +363,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 'bold', padding: '8px' }}>Product</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', padding: '8px' }}>Stock</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', padding: '8px' }}>Value</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', padding: '8px' }}>Action</TableCell>
               </TableRow>
@@ -586,7 +593,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       <Typography variant="subtitle1" component="h2">
         Week Commencing Sunday: 4th August 2024 to 10th August 2024
       </Typography>
-      {/* <Chip label="Plant Name: AD-001" color="primary" size="small" sx={{ mt: 0.5 }} /> */}
+      <Chip label="Plant Name: AD-001" color="primary" size="small" sx={{ mt: 0.5 }} />
       <Box sx={{ mt: 1 }}>
         <Grid container spacing={1} alignItems="center">
           <Grid item xs={12} sm={4}>
@@ -719,8 +726,8 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                             <Box sx={{ mt: 3 }}>
                               <WaterTreatmentHeader />
                             </Box>
-                            <Typography variant="h6" gutterBottom>Make-Up Condenser Water</Typography>
-                            {renderTableData(condenserWater1, ['Date', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action', 'Name', 'Signature'])}
+                              <Typography variant="h6" gutterBottom>Make-Up Condenser Water</Typography>
+                            {renderTableData(condenserWater1, ['id', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action', 'Name', 'Signature'])}
                             <Typography variant="h6" gutterBottom>Chilled Water</Typography>
                             {renderChilledTableData(chilledWater1)}
                             <Typography variant="h6" gutterBottom>Condenser Chemicals</Typography>
