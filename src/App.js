@@ -356,7 +356,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 'bold', padding: '8px' }}>Stock</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', padding: '8px' }}>Product</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', padding: '8px' }}>Value</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', padding: '8px' }}>Action</TableCell>
               </TableRow>
@@ -539,7 +539,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
           {data.map((item, index) => (
             <TableRow key={index}>
               <TableCell>{index + 1}</TableCell>
-              <TableCell>{item.id}</TableCell>
+              <TableCell>{item.label}</TableCell>
               <TableCell>{item.value}</TableCell>
             </TableRow>
           ))}
@@ -586,7 +586,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       <Typography variant="subtitle1" component="h2">
         Week Commencing Sunday: 4th August 2024 to 10th August 2024
       </Typography>
-      <Chip label="Plant Name: AD-001" color="primary" size="small" sx={{ mt: 0.5 }} />
+      {/* <Chip label="Plant Name: AD-001" color="primary" size="small" sx={{ mt: 0.5 }} /> */}
       <Box sx={{ mt: 1 }}>
         <Grid container spacing={1} alignItems="center">
           <Grid item xs={12} sm={4}>
