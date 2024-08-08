@@ -22,6 +22,7 @@ const timestampToDateString = (timestamp) => {
   }
   return timestamp; // If it's already a string or other format
 };
+
 const renderTableData = (data, columns) => (
   <TableContainer component={Paper} sx={{ mb: 4 }}>
     <Table>
@@ -182,7 +183,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
 
   const fetchNotes = async () => {
     try {
-      const notesSnapshot1 = await getDocs(collection(db, 'notes'));
+      const notesSnapshot1 = await getDocs(collection(db, 'notes2'));
       const notesData1 = notesSnapshot1.docs.map(doc => doc.data());
       setNotes1(notesData1);
 
@@ -193,7 +194,87 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       console.error("Error fetching notes: ", error);
     }
   };
-
+  const renderPlantVisitorLog = (plantName) => {
+    const filteredCheckIns = userCheckIns
+      .filter(checkIn => checkIn.plantName === plantName)
+      .filter(checkIn => {
+        const queryMatch = checkIn.name.toLowerCase().includes(searchQuery.toLowerCase()) || checkIn.phoneNumber.includes(searchQuery);
+        const startDateMatch = startDate ? new Date(checkIn.checkIns[0].checkInDate) >= startDate : true;
+        const endDateMatch = endDate ? new Date(checkIn.checkIns[0].checkInDate) <= endDate : true;
+        return queryMatch && startDateMatch && endDateMatch;
+      })
+      .sort((a, b) => {
+        const latestCheckOutA = Math.max(...a.checkIns.map(ci => ci.checkOutDate ? new Date(ci.checkOutDate + ' ' + ci.checkOutTime).getTime() : new Date(ci.checkInDate + ' ' + ci.checkInTime).getTime()));
+        const latestCheckOutB = Math.max(...b.checkIns.map(ci => ci.checkOutDate ? new Date(ci.checkOutDate + ' ' + ci.checkOutTime).getTime() : new Date(ci.checkInDate + ' ' + ci.checkInTime).getTime()));
+        return latestCheckOutB - latestCheckOutA;
+      });
+  
+    return (
+      <Box sx={{ mt: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <TextField
+            label="Search with Name or Phone No."
+            variant="outlined"
+            fullWidth
+            value={searchQuery}
+            onChange={handleSearchChange}
+            sx={{ mr: 2 }}
+          />
+        </Box>
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 650 }} aria-label="visitor log table">
+            <TableHead>
+              <TableRow>
+                <TableCell>No.</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Company</TableCell>
+                <TableCell>Purpose</TableCell>
+                <TableCell>Phone Number</TableCell>
+                <TableCell>Check-in Date</TableCell>
+                <TableCell>Check-in Time</TableCell>
+                <TableCell>Check-out Date</TableCell>
+                <TableCell>Check-out Time</TableCell>
+                <TableCell>Signature</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredCheckIns.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((checkIn, index) =>
+                checkIn.checkIns.map((ci, ciIndex) => (
+                  <TableRow key={`${checkIn.id}-${ciIndex}`}>
+                    <TableCell>{page * rowsPerPage + index + 1}</TableCell>
+                    <TableCell>{checkIn.name}</TableCell>
+                    <TableCell>{checkIn.companyName}</TableCell>
+                    <TableCell>{checkIn.purpose}</TableCell>
+                    <TableCell>{checkIn.phoneNumber}</TableCell>
+                    <TableCell>{ci.checkInDate}</TableCell>
+                    <TableCell>{ci.checkInTime}</TableCell>
+                    <TableCell sx={{ color: ci.checkOutDate ? 'inherit' : 'red' }}>
+                      {ci.checkOutDate || 'Not checked out yet'}
+                    </TableCell>
+                    <TableCell sx={{ color: ci.checkOutTime ? 'inherit' : 'red' }}>
+                      {ci.checkOutTime || 'Not checked out yet'}
+                    </TableCell>
+                    <TableCell>
+                      {ci.signature ? <img src={ci.signature} alt="Signature" style={{ width: '100px', height: '50px' }} /> : 'N/A'}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          component="div"
+          count={filteredCheckIns.length}
+          page={page}
+          onPageChange={handlePageChange}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleRowsPerPageChange}
+        />
+      </Box>
+    );
+  };
+  
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -344,9 +425,9 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
     if (!data || data.length === 0) return <Typography>No data available</Typography>;
   
     // Take only the first item in the data array
-    const row = data[0];
+    const row = data.find(item => item.id === 'technicianInfo');
     const signature = row?.signature;
-    const technicianInfo = row?.technicianInfo;
+    const technicianInfo = row?.name;
   
     return (
       <TableContainer component={Paper} sx={{ overflowX: 'auto', mb: 3, padding: '16px' }}>
@@ -366,7 +447,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                 <TableCell sx={{ padding: '8px' }}>{timestampToDateString(row.Day)}</TableCell>
                 <TableCell sx={{ padding: '8px' }}>{row.Conductivity}</TableCell>
                 <TableCell sx={{ padding: '8px' }}>{row.Action}</TableCell>
-                <TableCell sx={{ padding: '8px' }}>{technicianInfo?.name || 'N/A'}</TableCell>
+                <TableCell sx={{ padding: '8px' }}>{technicianInfo || 'N/A'}</TableCell>
                 <TableCell sx={{ padding: '8px' }}>
                   {signature ? (
                     <img src={signature} alt="Signature" style={{ width: '100px', height: '50px' }} />
@@ -381,7 +462,6 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       </TableContainer>
     );
   };
-  
   
   
   const renderCondenserChemicalTableData = (data) => {
@@ -427,34 +507,49 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   
   const renderNotes = (data) => (
     <TableContainer component={Paper} sx={{ mt: 3 }}>
-    <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell>No.</TableCell>
-          <TableCell>Note</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {data.flatMap(item => item.notes).map((note, index) => (
-          <TableRow key={index}>
-            <TableCell>
-              <Typography variant="body1" sx={{ color: '#000' }}>
-                {index + 1}
-              </Typography>
-            </TableCell>
-            <TableCell>
-              <Typography variant="body1" sx={{ color: '#000' }}>
-                {note}
-              </Typography>
-            </TableCell>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>No.</TableCell>
+            <TableCell>Note</TableCell>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </TableContainer>
+        </TableHead>
+        <TableBody>
+          {data.flatMap(item => item.notes).map((note, index) => (
+            <TableRow key={index}>
+              <TableCell>
+                <Typography variant="body1" sx={{ color: '#000' }}>
+                  {index + 1}
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <Typography variant="body1" sx={{ color: '#000' }}>
+                  {note}
+                </Typography>
+              </TableCell>
+              {index === 0 && (
+                <Box >
+                  <div>
+                    {data[0].name}
+                    </div>
+                  <div>
+                    
+                  {data[0].signature ? (
+                      <img src={data[0].signature} alt="Signature" style={{ width: '100px', height: '50px' }} />
+                    ) : (
+                      'N/A'
+                    )}
+                    </div>
+                    
+                  </Box>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
   
-
 
 
 
@@ -599,86 +694,18 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
               </Box>
             </Box>
           )}
-          {tabIndex === 1 && (
-            <Box sx={{ mt: 3 }}>
-              <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
-                <Tab label="AD-001" />
-                <Tab label="AD-008" />
-              </Tabs>
-              <Box sx={{ mt: 2 }}>
-                {detailsSubTabIndex === 0 && (
-                  <Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                      <TextField
-                        label="Search with Name or Phone No."
-                        variant="outlined"
-                        fullWidth
-                        value={searchQuery}
-                        onChange={handleSearchChange}
-                        sx={{ mr: 2 }}
-                      />
-                    </Box>
-                    <TableContainer component={Paper}>
-                      <Table sx={{ minWidth: 650 }} aria-label="visitor log table">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>No.</TableCell>
-                            <TableCell>Name</TableCell>
-                            <TableCell>Company</TableCell>
-                            <TableCell>Purpose</TableCell>
-                            <TableCell>Phone Number</TableCell>
-                            <TableCell>Check-in Date</TableCell>
-                            <TableCell>Check-in Time</TableCell>
-                            <TableCell>Check-out Date</TableCell>
-                            <TableCell>Check-out Time</TableCell>
-                            <TableCell>Signature</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {filteredCheckIns.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((checkIn, index) =>
-                            checkIn.checkIns.map((ci, ciIndex) => (
-                              <TableRow key={`${checkIn.id}-${ciIndex}`}>
-                                <TableCell>{page * rowsPerPage + index + 1}</TableCell>
-                                <TableCell>{checkIn.name}</TableCell>
-                                <TableCell>{checkIn.companyName}</TableCell>
-                                <TableCell>{checkIn.purpose}</TableCell>
-                                <TableCell>{checkIn.phoneNumber}</TableCell>
-                                <TableCell>{ci.checkInDate}</TableCell>
-                                <TableCell>{ci.checkInTime}</TableCell>
-                                <TableCell sx={{ color: ci.checkOutDate ? 'inherit' : 'red' }}>
-                                  {ci.checkOutDate || 'Not checked out yet'}
-                                </TableCell>
-                                <TableCell sx={{ color: ci.checkOutTime ? 'inherit' : 'red' }}>
-                                  {ci.checkOutTime || 'Not checked out yet'}
-                                </TableCell>
-                                <TableCell>
-                                  {ci.signature ? <img src={ci.signature} alt="Signature" style={{ width: '100px', height: '50px' }} /> : 'N/A'}
-                                </TableCell>
-                              </TableRow>
-                            ))
-                          )}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                    <TablePagination
-                      component="div"
-                      count={filteredCheckIns.length}
-                      page={page}
-                      onPageChange={handlePageChange}
-                      rowsPerPage={rowsPerPage}
-                      onRowsPerPageChange={handleRowsPerPageChange}
-                    />
-                  </Box>
-                )}
-                {detailsSubTabIndex === 1 && (
-                  <Box>
-                    {/* Render archived data or other content for the second sub-tab */}
-                    {/* Example: <Typography>Archived Data</Typography> */}
-                  </Box>
-                )}
-              </Box>
-            </Box>
-          )}
+        {tabIndex === 1 && (
+  <Box sx={{ mt: 3 }}>
+    <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
+      <Tab label="AD-001" />
+      <Tab label="AD-008" />
+    </Tabs>
+    <Box sx={{ mt: 2 }}>
+      {detailsSubTabIndex === 0 && renderPlantVisitorLog('AD-001')}
+      {detailsSubTabIndex === 1 && renderPlantVisitorLog('AD-008')}
+    </Box>
+  </Box>
+)}
           {tabIndex === 2 && (
             <Box sx={{ mt: 3 }}>
               {showTabs ? (
