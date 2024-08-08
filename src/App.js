@@ -10,6 +10,9 @@ import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { db } from './firebaseConfig'; // Ensure your Firebase config is correctly imported
 import { collection, getDocs } from 'firebase/firestore';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
 const timestampToDateString = (timestamp) => {
   if (!timestamp) return '';
   if (timestamp.toDate) {
@@ -208,7 +211,20 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
         const latestCheckOutB = Math.max(...b.checkIns.map(ci => ci.checkOutDate ? new Date(ci.checkOutDate + ' ' + ci.checkOutTime).getTime() : new Date(ci.checkInDate + ' ' + ci.checkInTime).getTime()));
         return latestCheckOutB - latestCheckOutA;
       });
-  
+
+    const downloadPDF = () => {
+      const input = document.getElementById(`pdf-content-${plantName}`);
+      html2canvas(input, { scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'pt', 'a4');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        pdf.addImage(imgData, 'PNG', 20, 20, pdfWidth - 40, pdfHeight - 40); // Adjust for padding
+        pdf.save(`visitor_log_${plantName}.pdf`);
+      });
+    };
+
     return (
       <Box sx={{ mt: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -222,7 +238,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
           />
         </Box>
         <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }} aria-label="visitor log table">
+          <Table sx={{ minWidth: 650 }} aria-label="visitor log table" id={`pdf-content-${plantName}`}>
             <TableHead>
               <TableRow>
                 <TableCell>No.</TableCell>
@@ -263,6 +279,9 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
             </TableBody>
           </Table>
         </TableContainer>
+        <Button variant="contained" color="primary" onClick={downloadPDF} sx={{ mt: 2 }}>
+          Download {plantName} Log as PDF
+        </Button>
         <TablePagination
           component="div"
           count={filteredCheckIns.length}
@@ -274,7 +293,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       </Box>
     );
   };
-  
+
   const fetchData = async () => {
     try {
       setLoading(true);
