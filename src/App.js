@@ -69,7 +69,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   const [coolingTowerChemicals2, setCoolingTowerChemicals2] = useState([]);
   const [additionalData, setAdditionalData] = useState([]);
   const [notes1, setNotes1] = useState([]);
-  const [notes2, setNotes2] = useState([]);
+  const [notes, setNotes] = useState([]);
   const [noteInput, setNoteInput] = useState('');
   const [rows, setRows] = useState([{ Name: '', Signature: '' }]);
   const [username, setUsername] = useState('');
@@ -184,13 +184,13 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
 
   const fetchNotes = async () => {
     try {
-      const notesSnapshot1 = await getDocs(collection(db, 'notes2'));
+      const notesSnapshot1 = await getDocs(collection(db, 'notes'));
       const notesData1 = notesSnapshot1.docs.map(doc => doc.data());
       setNotes1(notesData1);
 
-      const notesSnapshot2 = await getDocs(collection(db, 'notes2'));
+      const notesSnapshot2 = await getDocs(collection(db, 'notes'));
       const notesData2 = notesSnapshot2.docs.map(doc => doc.data());
-      setNotes2(notesData2);
+      setNotes(notesData2);
     } catch (error) {
       console.error("Error fetching notes: ", error);
     }
@@ -343,10 +343,13 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   }, []);
 
   const renderCoolingTowerChemicalsTableData = (data) => {
-    const signatureData = data.find(item => item.id === 'signature');
-    const nameData = data.find(item => item.id === 'technicianName');
     const chemicalsData = data.filter(item => item.id !== 'metadata' && item.id !== 'technicianInfo'&& item.id !== 'signature'&& item.id !== 'technicianName');
-
+    const technicianInfo = data.find(item => item.id === 'technicianInfo');
+    console.log(technicianInfo)
+    // Extract signature and name from the technicianInfo document
+    const signatureData = technicianInfo ? technicianInfo.signature : null;
+    const nameData = technicianInfo ? technicianInfo.name : 'N/A';
+  
     return (
       <Box sx={{ padding: '16px' }}>
         <TableContainer component={Paper}>
@@ -371,7 +374,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
           {signatureData && (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2, gap: 3 }}>
               <Typography variant="body1" sx={{ flex: 1 }}>
-                Name: {nameData?.name || 'N/A'}
+                Name: {technicianInfo?.name || 'N/A'}
               </Typography>
               <Box
                 sx={{
@@ -384,8 +387,8 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                   padding: '8px',
                 }}
               >
-                {signatureData.signature ? (
-                  <img src={signatureData.signature} alt="Signature" style={{ width: '100px', height: '50px' }} />
+                {technicianInfo.signature ? (
+                  <img src={technicianInfo?.signature} alt="Signature" style={{ width: '100px', height: '50px' }} />
                 ) : (
                   'N/A'
                 )}
@@ -500,6 +503,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   };
 
   const renderNotes = (data) => (
+    <>
     <TableContainer component={Paper} sx={{ mt: 3 }}>
       <Table>
         <TableHead>
@@ -521,25 +525,24 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                   {note}
                 </Typography>
               </TableCell>
-              {index === 0 && (
-                <Box>
-                  <div>
-                    {data[0].name}
-                  </div>
-                  <div>
-                    {data[0].signature ? (
-                      <img src={data[0].signature} alt="Signature" style={{ width: '100px', height: '50px' }} />
-                    ) : (
-                      'N/A'
-                    )}
-                  </div>
-                </Box>
-              )}
+              
             </TableRow>
           ))}
         </TableBody>
       </Table>
-    </TableContainer>
+      </TableContainer>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 3 }}>
+          <Typography variant="body1">Name: {data[0].name ||''}</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="body1" sx={{ mr: 2 }}>Signature:</Typography>
+            {data[0].signature !== 'N/A' ? (
+              <img src={data[0]?.signature || ''} alt="Signature" style={{ width: '100px', height: '50px' }} />
+            ) : (
+              <Typography variant="body1">N/A</Typography>
+            )}
+          </Box>
+        </Box>
+    </>
   );
 
   const renderAdditionalData = (data) => (
@@ -775,7 +778,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                             <Typography variant="h6" gutterBottom>Additional Data</Typography>
                             {renderAdditionalData(additionalData)}
                             <Typography variant="h6" gutterBottom>Notes</Typography>
-                            {renderNotes(notes2)}
+                            {renderNotes(notes)}
                           </Box>
                         )}
                       </Box>
