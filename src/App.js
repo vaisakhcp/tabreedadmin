@@ -405,9 +405,9 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
     console.log('Received data:', data);
   
     // Separate the main data from technicianInfo and signature
-    const mainData = data.find(item => item.id === 'signature'); // Directly get the signature object as mainData
+    const mainData = data.find(item => item.id !== 'signature' && item.id !== 'technicianInfo'); // Directly get the signature object as mainData
     const technicianInfo = data.find(item => item.id === 'technicianInfo')?.name || 'N/A';
-    const signature = mainData?.signature || 'N/A'; // Extract signature from mainData 
+    const signature = data.find(item => item.id === 'signature')?.signature || 'N/A';
     console.log('Main data:', mainData);
     console.log('Technician Info:', technicianInfo);
     console.log('Signature:', signature);
@@ -419,16 +419,16 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 'bold', fontSize: '14px', padding: '8px' }}>Day</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', fontSize: '14px', padding: '8px' }}>Conductivity</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', fontSize: '14px', padding: '8px' }}>Conductivity(µS/cm)</TableCell>
                 <TableCell sx={{ fontWeight: 'bold', fontSize: '14px', padding: '8px' }}>Action</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               <TableRow > 
                 <TableCell sx={{ padding: '8px' }}>
-                  {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                { mainData?.Day}
                 </TableCell>
-                <TableCell sx={{ padding: '8px' }}>{ mainData?.Conductivity}</TableCell>
+                <TableCell sx={{ padding: '8px' }}>{ mainData?.['Conductivity(µS/cm)']}</TableCell>
                 <TableCell sx={{ padding: '8px' }}>{ mainData?.Action}</TableCell>
               </TableRow>
             </TableBody>
@@ -690,6 +690,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
               <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
                 <Tab label="AD-001" />
                 <Tab label="AD-008" />
+                <Tab label="CDC Plant" />
               </Tabs>
               <Box sx={{ mt: 2 }}>
                 {detailsSubTabIndex === 0 && (
@@ -701,6 +702,11 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                   <List dense>
                     {renderSubmissions('AD-008')}
                   </List>
+                  )}
+                   {detailsSubTabIndex === 1 && (
+                  <List dense>
+                    {renderSubmissions('CDC Plant')}
+                  </List>
                 )}
               </Box>
             </Box>
@@ -710,10 +716,12 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
               <Tabs value={detailsSubTabIndex} onChange={handleDetailsSubTabChange} centered>
                 <Tab label="AD-001" />
                 <Tab label="AD-008" />
+                <Tab label="CDC Plant" />
               </Tabs>
               <Box sx={{ mt: 2 }}>
                 {detailsSubTabIndex === 0 && renderPlantVisitorLog('AD-001')}
                 {detailsSubTabIndex === 1 && renderPlantVisitorLog('AD-008')}
+                {detailsSubTabIndex === 2 && renderPlantVisitorLog('CDC Plant')}
               </Box>
             </Box>
           )}
@@ -729,6 +737,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                       <Tabs value={waterTreatmentSubTabIndex} onChange={handleWaterTreatmentSubTabChange} centered>
                         <Tab label="AD-001" />
                         <Tab label="AD-008" />
+                        <Tab label="CDC-Plant" />
                       </Tabs>
                       <Box sx={{ mt: 2 }}>
                         {waterTreatmentSubTabIndex === 0 && (
@@ -740,7 +749,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
                             {renderTableData(condenserWater1, ['id', 'Makeup Conductivity', 'Condenser Conductivity', 'Free Chlorine', 'Action', 'Name', 'Signature'])}
                               <Typography variant="h6" gutterBottom>Chilled Water</Typography>
                             {renderChilledTableData(chilledWater1)}
-                            <Typography variant="h6" gutterBottom>Condenser Chemicals</Typography>
+                            <Typography variant="h6" gutterBottom>CT Cleaning Chemicals</Typography>
                             {renderCondenserChemicalTableData(condenserChemicals1)}
                               <Typography variant="h6" gutterBottom>Cooling Tower Chemicals</Typography>
                             {renderCoolingTowerChemicalsTableData(coolingTowerChemicals1)}
