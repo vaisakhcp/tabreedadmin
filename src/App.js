@@ -10,7 +10,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { db } from './firebaseConfig'; // Ensure your Firebase config is correctly imported
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs,onSnapshot  } from 'firebase/firestore';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -177,6 +177,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   const handleLogin = () => {
     if (username === 'mnoushad@tabreed.ae' && password === '#Admin%Tabreed*') {
       setLoggedIn(true);
+      localStorage.setItem('loggedIn', 'true'); // Save login status to localStorage
     } else {
       alert('Incorrect username or password');
     }
@@ -293,54 +294,133 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
     );
   };
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const chilledWater1Snapshot = await getDocs(collection(db, 'chilledWater1'));
-      const chilledWater1Data = chilledWater1Snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setChilledWater1(chilledWater1Data);
-      const userCheckInsSnapshot = await getDocs(collection(db, 'userCheckIns'));
-      const userCheckInsData = userCheckInsSnapshot.docs.map(doc => {
-        const data = doc.data();
-        data.checkIns = data.checkIns.map(ci => ({
-          ...ci,
-          checkInDate: ci.checkInDate,
-          checkOutDate: ci.checkOutDate,
-        }));
-        return { id: doc.id, ...data };
-      });
-      setUserCheckIns(userCheckInsData);
-
-      const submissionsSnapshot = await getDocs(collection(db, 'shiftHandOvers'));
-      const submissionsData = submissionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setSubmissions(submissionsData);
-
-      const fetchChemicalData = async (collectionName) => {
-        const snapshot = await getDocs(collection(db, collectionName));
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      };
-
-      setCondenserWater1(await fetchChemicalData('condenserWater1'));
-      setChilledWater1(await fetchChemicalData('chilledWater1'));
-      setCondenserChemicals1(await fetchChemicalData('condenserChemicals1'));
-      setCoolingTowerChemicals1(await fetchChemicalData('coolingTowerChemicals1'));
-      setCondenserWater2(await fetchChemicalData('condenserWater2'));
-      setChilledWater2(await fetchChemicalData('chilledWater2'));
-      setCondenserChemicals2(await fetchChemicalData('condenserChemicals2'));
-      setCoolingTowerChemicals2(await fetchChemicalData('coolingTowerChemicals2'));
-      setAdditionalData(await fetchChemicalData('additionalDataTable'));
-
-      await fetchNotes();
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching data: ", error);
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+   
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const chilledWater1Snapshot = await getDocs(collection(db, 'chilledWater1'));
+        const chilledWater1Data = chilledWater1Snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setChilledWater1(chilledWater1Data);
+        const userCheckInsSnapshot = await getDocs(collection(db, 'userCheckIns'));
+        const userCheckInsData = userCheckInsSnapshot.docs.map(doc => {
+          const data = doc.data();
+          data.checkIns = data.checkIns.map(ci => ({
+            ...ci,
+            checkInDate: ci.checkInDate,
+            checkOutDate: ci.checkOutDate,
+          }));
+          return { id: doc.id, ...data };
+        });
+        setUserCheckIns(userCheckInsData);
+
+        const submissionsSnapshot = await getDocs(collection(db, 'shiftHandOvers'));
+        const submissionsData = submissionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setSubmissions(submissionsData);
+
+        const fetchChemicalData = async (collectionName) => {
+          const snapshot = await getDocs(collection(db, collectionName));
+          return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        };
+
+        setCondenserWater1(await fetchChemicalData('condenserWater1'));
+        setChilledWater1(await fetchChemicalData('chilledWater1'));
+        setCondenserChemicals1(await fetchChemicalData('condenserChemicals1'));
+        setCoolingTowerChemicals1(await fetchChemicalData('coolingTowerChemicals1'));
+        setCondenserWater2(await fetchChemicalData('condenserWater2'));
+        setChilledWater2(await fetchChemicalData('chilledWater2'));
+        setCondenserChemicals2(await fetchChemicalData('condenserChemicals2'));
+        setCoolingTowerChemicals2(await fetchChemicalData('coolingTowerChemicals2'));
+        setAdditionalData(await fetchChemicalData('additionalDataTable'));
+
+        await fetchNotes();
+        setLoading(false);
+        const condenserWater1Unsubscribe = onSnapshot(collection(db, 'condenserWater1'), (snapshot) => {
+          setCondenserWater1(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+
+        const chilledWater1Unsubscribe = onSnapshot(collection(db, 'chilledWater1'), (snapshot) => {
+          setChilledWater1(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+
+        const condenserChemicals1Unsubscribe = onSnapshot(collection(db, 'condenserChemicals1'), (snapshot) => {
+          setCondenserChemicals1(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+
+        const coolingTowerChemicals1Unsubscribe = onSnapshot(collection(db, 'coolingTowerChemicals1'), (snapshot) => {
+          setCoolingTowerChemicals1(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+
+        const condenserWater2Unsubscribe = onSnapshot(collection(db, 'condenserWater2'), (snapshot) => {
+          setCondenserWater2(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+
+        const chilledWater2Unsubscribe = onSnapshot(collection(db, 'chilledWater2'), (snapshot) => {
+          setChilledWater2(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+
+        const condenserChemicals2Unsubscribe = onSnapshot(collection(db, 'condenserChemicals2'), (snapshot) => {
+          setCondenserChemicals2(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+
+        const coolingTowerChemicals2Unsubscribe = onSnapshot(collection(db, 'coolingTowerChemicals2'), (snapshot) => {
+          setCoolingTowerChemicals2(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+
+        const additionalDataUnsubscribe = onSnapshot(collection(db, 'additionalDataTable'), (snapshot) => {
+          setAdditionalData(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+
+        const notesUnsubscribe = onSnapshot(collection(db, 'notes'), (snapshot) => {
+          const notesData = snapshot.docs.map(doc => doc.data());
+          setNotes1(notesData);
+          setNotes(notesData);
+        });
+
+        // Set up listener for userCheckIns
+        const userCheckInsUnsubscribe = onSnapshot(collection(db, 'userCheckIns'), (snapshot) => {
+          const userCheckInsData = snapshot.docs.map(doc => {
+            const data = doc.data();
+            data.checkIns = data.checkIns.map(ci => ({
+              ...ci,
+              checkInDate: ci.checkInDate,
+              checkOutDate: ci.checkOutDate,
+            }));
+            return { id: doc.id, ...data };
+          });
+          setUserCheckIns(userCheckInsData);
+        });
+
+        // Set up listener for submissions
+        const submissionsUnsubscribe = onSnapshot(collection(db, 'shiftHandOvers'), (snapshot) => {
+          const submissionsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setSubmissions(submissionsData);
+        });
+
+        // Clean up the listeners when the component unmounts
+        return () => {
+          condenserWater1Unsubscribe();
+          chilledWater1Unsubscribe();
+          condenserChemicals1Unsubscribe();
+          coolingTowerChemicals1Unsubscribe();
+          condenserWater2Unsubscribe();
+          chilledWater2Unsubscribe();
+          condenserChemicals2Unsubscribe();
+          coolingTowerChemicals2Unsubscribe();
+          additionalDataUnsubscribe();
+          notesUnsubscribe();
+          userCheckInsUnsubscribe();
+          submissionsUnsubscribe();
+        };
+      } catch (error) {
+        console.error("Error fetching data: ", error);
+        setLoading(false);
+      }
+      
+      
+    };
     fetchData();
-  }, []);
+  }, []); 
 
   const renderCoolingTowerChemicalsTableData = (data) => {
     const chemicalsData = data.filter(item => item.id !== 'metadata' && item.id !== 'technicianInfo'&& item.id !== 'signature'&& item.id !== 'technicianName');
@@ -809,7 +889,28 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
 const App = () => {
   const [loggedIn, setLoggedIn] = useState(false);
 
-  return (
+  // Check localStorage for login status when the component mounts
+  useEffect(() => {
+    const isUserLoggedIn = localStorage.getItem('loggedIn') === 'true';
+    setLoggedIn(isUserLoggedIn);
+  }, []);
+
+  // Function to handle login
+  const handleLogin = (username, password) => {
+    if (username === 'mnoushad@tabreed.ae' && password === '#Admin%Tabreed*') {
+      setLoggedIn(true);
+      localStorage.setItem('loggedIn', 'true'); // Save login status to localStorage
+    } else {
+      alert('Incorrect username or passwor2d');
+    }
+  };
+
+  // Function to handle logout
+  const handleLogout = () => {
+    setLoggedIn(false);
+    localStorage.removeItem('loggedIn'); // Remove login status from localStorage
+  };
+    return (
     <Router>
       <Routes>
         <Route
@@ -818,7 +919,7 @@ const App = () => {
         />
         <Route
           path="/admin/:id"
-          element={loggedIn ? <AdminDetail /> : <Navigate to="/" />}
+          element={loggedIn ? <AdminDetail onLogout={handleLogout} /> : <Navigate to="/" />}
         />
         <Route
           path="*"
