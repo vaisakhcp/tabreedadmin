@@ -319,7 +319,6 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   }, []);
 
   const renderCoolingTowerChemicalsTableData = (data) => {
-    console.log('data', data)
     let chemicalsData, technicianInfo;
     if (waterTreatmentSubTabIndex === 0) {
         chemicalsData = coolingTowerChemicals1.filter(item => item.id !== 'metadata' && item.id !== 'technicianInfo' && item.id !== 'signature' && item.id !== 'technicianName');
@@ -479,8 +478,12 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
     );
   };
 
-  const renderNotes = (data) => (
-    <>
+  const renderNotes = (data) => {
+    console.log('note',data[0].notes)
+    const main = data.find(id=>id === id)
+    return (
+  
+      <>
       <TableContainer component={Paper} sx={{ mt: 3 }}>
         <Table>
           <TableHead>
@@ -518,8 +521,11 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
           )}
         </Box>
       </Box>
-    </>
-  );
+        </>
+)
+  }
+ 
+
 
   const renderAdditionalData = (data) => (
     <TableContainer component={Paper} sx={{ mt: 3 }}>
@@ -672,7 +678,6 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
       {renderTableData(condenserWater1, ['id', 'Makeup Conductivity (µS/cm)', 'Condenser Conductivity (µS/cm)', 'Free Chlorine', 'Action', 'Name', 'Signature'])}
 
       <Typography variant="h6" gutterBottom>Chilled Water</Typography>
-      {JSON.stringify(chilledWater1)}
       {renderChilledTableData(chilledWater1)}
 
       <Typography variant="h6" gutterBottom>CT Cleaning Chemicals</Typography>
@@ -708,7 +713,6 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
 
       <Typography variant="h6" gutterBottom>Additional Data</Typography>
       {renderAdditionalData(additionalDataTable2)}
-{JSON.stringify(additionalDataTable2)}
       <Typography variant="h6" gutterBottom>Notes</Typography>
       {renderNotes(notes2)}
     </Box>
