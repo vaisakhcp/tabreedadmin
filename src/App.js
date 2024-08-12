@@ -200,7 +200,18 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+      const userCheckInsSnapshot = await getDocs(collection(db, 'userCheckIns'));
+      const userCheckInsData = userCheckInsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        data.checkIns = data.checkIns.map(ci => ({
+          ...ci,
+          checkInDate: ci.checkInDate,
+          checkOutDate: ci.checkOutDate,
+        }));
+        return { id: doc.id, ...data };
+      });
+      setUserCheckIns(userCheckInsData);
+
       // Fetch data for AD-001
       const chilledWater1Snapshot = await getDocs(collection(db, 'chilledWater1'));
       const chilledWater1Data = chilledWater1Snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -315,6 +326,7 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
   };
 
   useEffect(() => {
+    
     fetchData();
   }, []);
 
@@ -574,18 +586,22 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
 
   const renderPlantVisitorLog = (plantName) => {
     const filteredCheckIns = userCheckIns
-      .filter(checkIn => checkIn.plantName === plantName)
-      .filter(checkIn => {
-        const queryMatch = checkIn.name.toLowerCase().includes(searchQuery.toLowerCase()) || checkIn.phoneNumber.includes(searchQuery);
-        const startDateMatch = startDate ? new Date(checkIn.checkIns[0].checkInDate) >= startDate : true;
-        const endDateMatch = endDate ? new Date(checkIn.checkIns[0].checkInDate) <= endDate : true;
-        return queryMatch && startDateMatch && endDateMatch;
-      })
-      .sort((a, b) => {
-        const latestCheckOutA = Math.max(...a.checkIns.map(ci => ci.checkOutDate ? new Date(ci.checkOutDate + ' ' + ci.checkOutTime).getTime() : new Date(ci.checkInDate + ' ' + ci.checkInTime).getTime()));
-        const latestCheckOutB = Math.max(...b.checkIns.map(ci => ci.checkOutDate ? new Date(ci.checkOutDate + ' ' + ci.checkOutTime).getTime() : new Date(ci.checkInDate + ' ' + ci.checkInTime).getTime()));
-        return latestCheckOutB - latestCheckOutA;
-      });
+  .filter(checkIn => checkIn.plantName === plantName)
+  .filter(checkIn => {
+    const queryMatch = checkIn.name.toLowerCase().includes(searchQuery.toLowerCase()) || checkIn.phoneNumber.includes(searchQuery);
+    const startDateMatch = startDate ? new Date(checkIn.checkIns[0].checkInDate) >= startDate : true;
+    const endDateMatch = endDate ? new Date(checkIn.checkIns[0].checkInDate) <= endDate : true;
+    return queryMatch && startDateMatch && endDateMatch;
+  })
+  .sort((a, b) => {
+    const latestCheckOutA = Math.max(...a.checkIns.map(ci => 
+      new Date(`${ci.checkOutDate || ci.checkInDate} ${ci.checkOutTime || ci.checkInTime}`).getTime()
+    ));
+    const latestCheckOutB = Math.max(...b.checkIns.map(ci => 
+      new Date(`${ci.checkOutDate || ci.checkInDate} ${ci.checkOutTime || ci.checkInTime}`).getTime()
+    ));
+    return latestCheckOutB - latestCheckOutA;
+  });
 
     const downloadPDF = () => {
       const input = document.getElementById(`pdf-content-${plantName}`);
@@ -629,7 +645,10 @@ const AdminList = ({ setLoggedIn, loggedIn }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredCheckIns.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((checkIn, index) =>
+
+              {filteredCheckIns
+                  .filter(checkIn => checkIn.name) // Filter out items without a name
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((checkIn, index) =>
                 checkIn.checkIns.map((ci, ciIndex) => (
                   <TableRow key={`${checkIn.id}-${ciIndex}`}>
                     <TableCell>{page * rowsPerPage + index + 1}</TableCell>
